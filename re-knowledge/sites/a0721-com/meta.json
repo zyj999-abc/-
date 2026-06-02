@@ -1,0 +1,42 @@
+{
+  "url": "https://www.a0721.com/",
+  "first_analyzed": "2026-06-02T02:00:00+08:00",
+  "last_updated": "2026-06-02T02:10:00+08:00",
+  "tech_stack": ["Nuxt.js", "Vue", "Vue Router SPA", "Cloudflare", "Baidu Analytics", "Google Tag Manager"],
+  "redirect_chain": [
+    "https://www.a0721.com/ -> 302 -> https://kk9x94.com/",
+    "kk9x94.com/ -> 15s countdown -> kk9x94.com/home/",
+    "kk9x94.com/home/ loads portal from https://portal.instruno.com/public2/"
+  ],
+  "real_brand": "4hu (四虎)",
+  "cdn_base": "https://portal.instruno.com/public2",
+  "site_type": "Adult content video aggregator",
+  "main_pages": ["/", "/home/", "/top", "/help/", "/series/{id}"],
+  "anti_bot": [
+    "F12/Ctrl+Shift+I/J/C blocked",
+    "Right-click blocked",
+    "DevTools detection by viewport size delta",
+    "debugger statement every 80ms",
+    "console.clear() every 1s",
+    "Bait element with getter trap"
+  ],
+  "external_resources": [
+    "https://hm.baidu.com/hm.js?cab3ebe4da501bca493302d8a74d221c (Baidu Tongji)",
+    "https://portal.instruno.com/public2/ (main CDN)"
+  ],
+  "json_api_endpoints": [
+    "https://portal.instruno.com/public2/json/a.json",
+    "https://portal.instruno.com/public2/json/top-tags.json",
+    "https://portal.instruno.com/public2/json/top/top.json"
+  ],
+  "ads_domains": [
+    "www.950k531308.cc", "153.43.87.127:18027", "fudelv.cc", "pg43r.pg430329.cc",
+    "4855e.2312337.cc", "ccgh9b57.dejqpmm.com", "uiery7.com", "xbcnv1.com",
+    "27c.27pg10689.cc", "pg692707.cc", "www.28y156611.cc"
+  ],
+  "forum": "NOT FOUND - the site is a video aggregator with no forum/community features",
+  "category_count": 18,
+  "category_examples": ["自拍视频", "淫妻作乐", "热门探花", "国产传媒", "JVID专区", "SWAG专区", "直播录屏", "AI 换脸", "动漫卡通"],
+  "actress_count_seen": 8,
+  "actress_examples": ["北野望", "木下凛々子", "深田咏美", "新井リマ", "松本いちか", "相沢みなみ", "吉根ゆりあ", "弥生みづき"]
+}
