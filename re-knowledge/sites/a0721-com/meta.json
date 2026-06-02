@@ -1,42 +1,134 @@
 {
   "url": "https://www.a0721.com/",
   "first_analyzed": "2026-06-02T02:00:00+08:00",
-  "last_updated": "2026-06-02T02:10:00+08:00",
-  "tech_stack": ["Nuxt.js", "Vue", "Vue Router SPA", "Cloudflare", "Baidu Analytics", "Google Tag Manager"],
+  "last_updated": "2026-06-02T04:50:00+08:00",
+  "tech_stack": ["Nuxt.js 3", "Vue 3", "Vue Router SPA", "Element Plus", "Cloudflare CDN", "Baidu Tongji", "Google Tag Manager", "DPlayer", "CryptoJS"],
   "redirect_chain": [
-    "https://www.a0721.com/ -> 302 -> https://kk9x94.com/",
-    "kk9x94.com/ -> 15s countdown -> kk9x94.com/home/",
-    "kk9x94.com/home/ loads portal from https://portal.instruno.com/public2/"
+    "https://www.a0721.com/ -> 302 -> https://kk2b29.com/",
+    "kk2b29.com/ -> 15s countdown -> kk2b29.com/home/",
+    "kk2b29.com/home/ loads portal from https://portal.instruno.com/public2/"
   ],
   "real_brand": "4hu (四虎)",
   "cdn_base": "https://portal.instruno.com/public2",
-  "site_type": "Adult content video aggregator",
-  "main_pages": ["/", "/home/", "/top", "/help/", "/series/{id}"],
+  "video_cdn_domains": {
+    "titlepic_thumbs": "https://pppp.642p.com/images/{YYYYMM}/{id}/cover.txt",
+    "yulan_preview": "https://pppp.642p.com/images/{YYYYMM}/{id}/preview.mp4",
+    "mp4_storage": "https://d1.xia12345.com/video/{YYYYMM}/{id}/{720|hd}.mp4",
+    "m3u8_storage": "/videos/{YYYYMM}/{id}/hls/index.m3u8 (or /newhd/)"
+  },
+  "image_cdn_domains": {
+    "tu_img": "https://img.997pp.com/Tu/{YYYYMM}/{hash}.jpg"
+  },
+  "site_type": "Adult content aggregator (read-only viewer, no UGC)",
   "anti_bot": [
     "F12/Ctrl+Shift+I/J/C blocked",
     "Right-click blocked",
     "DevTools detection by viewport size delta",
     "debugger statement every 80ms",
     "console.clear() every 1s",
-    "Bait element with getter trap"
+    "Bait element with getter trap",
+    "15s countdown on initial visit",
+    "18+ age gate"
   ],
+  "encryption": {
+    "algorithm": "AES-256-CBC",
+    "key": "22946bc50fd63164b79df55070a85a92",
+    "iv": "kaixin1234567890",
+    "padding": "Pkcs7",
+    "transport_format": "URL-safe Base64 ({data:\"<b64>\"})"
+  },
   "external_resources": [
     "https://hm.baidu.com/hm.js?cab3ebe4da501bca493302d8a74d221c (Baidu Tongji)",
     "https://portal.instruno.com/public2/ (main CDN)"
   ],
-  "json_api_endpoints": [
-    "https://portal.instruno.com/public2/json/a.json",
-    "https://portal.instruno.com/public2/json/top-tags.json",
-    "https://portal.instruno.com/public2/json/top/top.json"
+  "complete_route_table": [
+    {"name": "home", "path": "/home"},
+    {"name": "top", "path": "/top"},
+    {"name": "top-type", "path": "/top/:type()"},
+    {"name": "search", "path": "/search"},
+    {"name": "category-list", "path": "/category-list"},
+    {"name": "category", "path": "/category/:category(.*)*"},
+    {"name": "view-id", "path": "/view/:id()"},
+    {"name": "video", "path": "/video/:avkey()"},
+    {"name": "series", "path": "/series/:series()"},
+    {"name": "help", "path": "/help"},
+    {"name": "help-id", "path": "/help/:id()"}
+  ],
+  "json_api_endpoints": {
+    "config": "https://portal.instruno.com/public2/json/a.json (ad/UI config, all ad slots)",
+    "latest_videos": "https://portal.instruno.com/public2/json/latest.json (latest/latest2/movie, 20 items each)",
+    "top_tags": "https://portal.instruno.com/public2/json/top-tags.json (keyword array)",
+    "top": "https://portal.instruno.com/public2/json/top.json (empty/error)",
+    "category_list": "https://portal.instruno.com/public2/json/category-list.json (full category tree)",
+    "category_paginated": "https://portal.instruno.com/public2/json/category/{classid}-{page}.json (24/page)",
+    "news_detail": "https://portal.instruno.com/public2/json/view/{news_id}.json (image gallery, no comments)",
+    "video_detail": "https://portal.instruno.com/public2/json/video/{video_id}.json (mp4/m3u8 + 10 related)"
+  },
+  "dynamic_api_endpoints": [
+    "GET /api/v3/top?type=N",
+    "GET /api/v2/getAd",
+    "GET /api/v2/series?series={id}&page={N}",
+    "GET /api/v2/search?keyword={kw}&classid={cid}&page={N}",
+    "GET /api/v2/help",
+    "GET /api/v2/help/{id}",
+    "GET /api/v2/topTags"
   ],
   "ads_domains": [
     "www.950k531308.cc", "153.43.87.127:18027", "fudelv.cc", "pg43r.pg430329.cc",
     "4855e.2312337.cc", "ccgh9b57.dejqpmm.com", "uiery7.com", "xbcnv1.com",
     "27c.27pg10689.cc", "pg692707.cc", "www.28y156611.cc"
   ],
-  "forum": "NOT FOUND - the site is a video aggregator with no forum/community features",
-  "category_count": 18,
-  "category_examples": ["自拍视频", "淫妻作乐", "热门探花", "国产传媒", "JVID专区", "SWAG专区", "直播录屏", "AI 换脸", "动漫卡通"],
-  "actress_count_seen": 8,
-  "actress_examples": ["北野望", "木下凛々子", "深田咏美", "新井リマ", "松本いちか", "相沢みなみ", "吉根ゆりあ", "弥生みづき"]
+  "forum_finding": {
+    "user_claim": "User remembered a forum that supports posting images, viewing comments, posting comments",
+    "investigation_result": "NO FORUM EXISTS - the site is purely a read-only content viewer",
+    "evidence": [
+      "Complete route table has 11 routes - none for /forum, /post, /comment, /reply, /pl, /bbs",
+      "JS bundle grep for 'comment|reply|forum|pl.json|discuss|publish|贴子|帖子|留言|评论' returned ONLY DPlayer danmaku references (video bullet comments, not post comments)",
+      "/json/view/{news_id}.json detail response has NO comments/replies fields (only id, title, titlepic, classid, newstime, content, prev_and_next, breadcrumb, category_*)",
+      "/json/video/{video_id}.json detail response has NO comments/replies fields (only id, title, titlepic, yulan, mp4, m3u8, keyboard, classid, newstime, prev_and_next, breadcrumb, category_*, maybe)",
+      "No <textarea>, <input type=submit>, 'comment', 'reply' elements in rendered DOM of /view/{id}",
+      "No /api/v2/comment*, /api/v2/pl*, /api/v2/reply* endpoints found in any JS bundle",
+      "All 11 dynamic API endpoints are read-only (GET): top, getAd, series, search, help, topTags"
+    ],
+    "what_user_likely_thought_was_a_forum": "The '图文' (graphics/image) and '小说' (novel) categories under 'news' tbname - these are READ-ONLY image galleries (with N pictures) and READ-ONLY novel chapters. They are NOT a forum."
+  },
+  "category_count": 5,
+  "top_level_categories": [
+    {"classid": 1, "name": "国产", "path": "video", "tbname": "movie", "sub_count": 16},
+    {"classid": 28, "name": "女优", "path": "av", "tbname": "movie", "sub_count": 53},
+    {"classid": 37, "name": "电影", "path": "movie", "tbname": "movie", "sub_count": 10},
+    {"classid": 2, "name": "图文", "path": "pic", "tbname": "news", "sub_count": 8},
+    {"classid": 3, "name": "小说", "path": "book", "tbname": "news", "sub_count": 5}
+  ],
+  "photo_novel_categories": {
+    "parent": {"id": 2, "name": "图文", "path": "pic", "tbname": "news"},
+    "subs": [
+      {"id": 10, "name": "自拍偷拍", "path": "pic/toupai", "listtempid": 10, "items_total": "huge"},
+      {"id": 11, "name": "美腿丝袜", "path": "pic/meitui", "listtempid": 10, "items_total": "huge"},
+      {"id": 13, "name": "欧美色图", "path": "pic/oumei", "listtempid": 10, "items_total": "huge"},
+      {"id": 14, "name": "卡通图片", "path": "pic/katong", "listtempid": 10, "items_total": "huge"},
+      {"id": 16, "name": "都市小说", "path": "pic/dushi", "listtempid": 11, "items_total": "huge"},
+      {"id": 17, "name": "乱伦小说", "path": "pic/luanlun", "listtempid": 11, "items_total": "huge"},
+      {"id": 18, "name": "校园小说", "path": "pic/xiaoyuan", "listtempid": 11, "items_total": "huge"},
+      {"id": 20, "name": "人妻小说", "path": "pic/renqi", "listtempid": 11, "items_total": "huge"}
+    ],
+    "url_access": [
+      "/category/2 (list all 图文)",
+      "/category/2/photo (legacy alias)",
+      "/category/10/photo (自拍偷拍 list)",
+      "/category/16/novel (都市小说 list)",
+      "/view/{news_id} (single post detail - image gallery or novel chapter)"
+    ],
+    "example_post": {
+      "id": 100709,
+      "title": "可爱的少女玛丽 莱恩展示她毛茸茸的阴部并玩弄它[26P]",
+      "classid": 13,
+      "category_name": "欧美色图",
+      "category_type": "news",
+      "category_tempid": 10,
+      "content_format": "HTML with <img> tags (26 inline images, all hosted on img.997pp.com)",
+      "has_comments": false
+    }
+  },
+  "click_handler_logic": "From WiYFok4aHaHQu82s.js: tbname='movie'->/video/{id}; tbname='news'->/view/{id}; listtempid=16 && m3u8=0 -> /series/view/{id}; window.open() in _blank"
 }
