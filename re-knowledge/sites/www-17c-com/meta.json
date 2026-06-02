@@ -1,119 +1,188 @@
 {
   "url": "https://www.17c.com/",
   "first_analyzed": "2026-06-02T17:00:00+08:00",
-  "last_updated": "2026-06-02T17:30:00+08:00",
-  "site_type": "URL publisher + APP downloader (NO web content)",
-  "tech_stack": ["jQuery 3.7.1", "Vue 3.5.28 (APP only)", "Vite (APP only)", "vanilla HTML/CSS/JS (web)", "jiduncdn (极盾CDN)", "Nginx", "PWS/8.3.1.0.8 (Pinduoduo Web Server)", "Apache (qrcode.js host)"],
+  "last_updated": "2026-06-02T22:50:00+08:00",
+  "site_type": "拼音码端到端跳转链 → 真实成人内容站 (quradpk.com:2087) + APP 下载引导",
+  "site_category": "成人内容 (18+) — 视频/小说/漫画/楼凤/番号 — 含色情广告",
+  "tech_stack": {
+    "entry": ["jQuery 3.7.1", "vanilla HTML/CSS/JS (web entry)", "jiduncdn (极盾CDN)"],
+    "l1_landing": ["Vue 3.5.28", "Vite", "PWA 风格 APP 着陆页"],
+    "l2_content_site": ["Vue 3.5.28", "Vite (legacy + ESM)", "Vue Router (history mode)", "JSEncrypt (RSA)", "CryptoJS (AES-CBC-PKCS7)", "OpenInstall SDK", "Tencent 加速", "ExoClick 广告网络 (a.magsrv.com)"]
+  },
   "infrastructure": {
-    "entry": "https://www.17c.com/ (jiduncdn)",
+    "entry": "https://www.17c.com/ (jiduncdn 162.159.244.36, 1.0.0.1)",
     "l1_redirect": "https://c{YYYYMMDD}.17czz.17ctz.com/index.html (daily-rotating, nginx)",
     "l2_redirect": "https://c{YYYYMMDD}.17cfb.17ctz.com/index.html (daily-rotating, nginx)",
+    "l1_app_landing": "https://td30.xnmdht.top/ (PWS/8.3.1.0.8 - 拼多多 Web Server, 宁夏中卫节点 PS-NGB-010BY219)",
+    "l1_secondary": "https://1.xnmdht.top/, https://2.xnmdht.top/ (rotation)",
     "candidate_sites": [
-      "https://www.guwvdfy.com:2087/ (obfuscated redirect, identical to zgvjeuu)",
-      "https://www.zgvjeuu.com:2087/ (obfuscated redirect, identical to guwvdfy)"
+      "https://www.guwvdfy.com:2087/ (替换密码密文入口)",
+      "https://www.zgvjeuu.com:2087/ (替换密码密文入口 - 与 guwvdfy 同密文)"
     ],
+    "real_content_site": "https://www.quradpk.com:2087/ (Vite legacy + Vue 3, OpenInstall 着陆 + SPA 路由)",
     "app_host": "https://res17ac1m.中信讯飞.com/ (PWS/8.3.1.0.8)",
     "apk_cdn": "https://a17k.基因研究.com/xh5.apk",
-    "qrcode_js": "https://ggfm.gzsy12348.com/qrcode.js (EMPTY, 0 bytes, Apache)"
+    "video_cdn": "https://sghjkj.xn--0hv473a.com (sghjkj.璞昌.com)",
+    "video_cover_cdn": "https://hgj17fm2.xn--0hv473a.com (hgj17fm2.璞昌.com)",
+    "image_cdn": "https://sgfs2b.xn--57q23bieq57h.com (sgfs2b.海博冲压.com)",
+    "thumbnail_cdn": "https://dpic.xn--czru2dx3eszw3lat53b.com (dpic.河池家电商城.com)",
+    "main_bundle_cdn": "https://ghj7saa.xn--54qu66awkkshgsf475q.com (ghj7saa.珠海阳光心理.com)",
+    "cloak_payload_cdn": "https://ajskbnrs.xn--jor0b302fdhgwnccw8g.com (ajskbnrs.双江古镇旅游.com)",
+    "internal_api_endpoints": [
+      "https://0218dc.gogkmmt.com:8007/ (主 API 代理)",
+      "https://2bdf4e683f202f09dg.pqcxypc.com:8007/",
+      "https://2bdf4e683f202f09dc.pmnwhzi.com:8007/"
+    ],
+    "iOS_redirect": "https://ss1.ludmpts.com:1083/41/ (iOS 18.4+ 返回跳)",
+    "android_redirect": "https://hongosi.xn--tlqz3aj77agil76ww4ni2k.com/up/lostnew.js (Android wifi 条件加载)",
+    "servers": ["Cloudflare (Photon-Edge)", "AWS CloudFront (HKG54-P2)"]
   },
   "redirect_chain": [
-    "https://www.17c.com/ → JS redirect → c{YYYYMMDD}.17czz.17ctz.com/index.html",
-    "c{YYYYMMDD}.17czz.17ctz.com/index.html → shows URL → c{YYYYMMDD}.17cfb.17ctz.com/index.html",
-    "c{YYYYMMDD}.17cfb.17ctz.com/index.html → shows 2 candidates (guwvdfy / zgvjeuu) + APP download",
-    "guwvdfy.com:2087 → JS substitution cipher decrypt → malformed Baidu URL",
-    "zgvjeuu.com:2087 → JS substitution cipher decrypt → SAME malformed Baidu URL"
+    "1. https://www.17c.com/ → JS location.replace → c{YYYYMMDD}.17czz.17ctz.com/index.html",
+    "2. c{YYYYMMDD}.17czz.17ctz.com/index.html → 显示二维码 + 提示 → c{YYYYMMDD}.17cfb.17ctz.com/index.html",
+    "3. c{YYYYMMDD}.17cfb.17ctz.com/index.html → 显示 2 个候选域名 + APP 下载",
+    "4. guwvdfy.com:2087 / zgvjeuu.com:2087 → 替换密码解密 → 跳到 https://www.quradpk.com:2087/ (实际行为)",
+    "5. quradpk.com:2087 → 真实成人内容站 (SPA: 视频/小说/漫画/楼凤/番号)"
   ],
+  "complete_site_topology": {
+    "entry_layer": ["www.17c.com", "c*.17czz.17ctz.com", "c*.17cfb.17ctz.com"],
+    "candidate_decoy_layer": ["guwvdfy.com:2087", "zgvjeuu.com:2087 (含替换密码 JS)"],
+    "l1_app_landing_layer": ["td30.xnmdht.top", "1.xnmdht.top", "2.xnmdht.top"],
+    "content_layer": ["www.quradpk.com:2087 (主)"],
+    "asset_layer": ["hgj17fm2.璞昌.com (视频封面)", "sghjkj.璞昌.com (m3u8)", "sgfs2b.海博冲压.com (动图)", "dpic.河池家电商城.com (缩略图)"],
+    "app_distribution_layer": ["a17k.基因研究.com (APK)", "res17ac1m.中信讯飞.com (iOS)", "ss1.ludmpts.com:1083 (iOS 弹回)"]
+  },
   "substitution_cipher": {
     "type": "single-char substitution (1-to-1 mapping)",
     "alphabet_size": 78 chars (a-zA-Z0-9 + special)",
-    "table": "embedded in every redirect page (~1KB inline JS)",
-    "function_name": "en (actually a DECODER)",
+    "function_name_in_js": "en (实为 decode)",
     "decryption_method": "for each char c in cipher, output += dk[c] (or c if not in table)",
-    "purpose": "obfuscate the real URL to evade simple URL-based blocking",
-    "weakness": "trivial to break (the table is right there in the JS, single-pass substitution)"
+    "purpose_old_assumption": "obfuscate URL to evade URL-based blocking",
+    "purpose_actual": "1) 掩盖真实目标域名 (quradpk.com) 2) 抗静态爬虫 3) 抗审查",
+    "weakness": "table 是明文 1KB inline JS, 任何浏览器执行立即暴露目标"
   },
-  "decoded_urls": {
-    "guwvdfy_target": "https://www.baidu.com/?query?=/ (malformed - probably should be /s?wd=)",
-    "zgvjeuu_target": "https://www.baidu.com/?query?=/ (IDENTICAL to guwvdfy)",
-    "ios_config": "./icon.mobileconfig (iOS Apple Config profile)",
-    "ios_provision": "./embedded.mobileprovision (iOS Mobile Provision)",
-    "apk_url_urlencoded": "https%3A%2F%2Fa17k.基因研究.com%2Fxh5.apk",
-    "apk_url_decoded": "https://a17k.基因研究.com/xh5.apk"
+  "substitution_cipher_real_decoded": {
+    "guwvdfy_ciphertext": "hFFJLg//DDDm)d6f_m(O^/j:_Y5Tj8/",
+    "zgvjeuu_ciphertext": "hFFJLg//DDDm)d6f_m(O^/j:_Y5Tj8/ (与 guwvdfy 完全相同)",
+    "guwvdfy_decoded_string": "https://www.baidu.com/?query?=/ (看似损坏 - 实际是 JS 跳板后被改写)",
+    "actual_target_after_browser_jump": "https://www.quradpk.com:2087/ (浏览器实际跳到的目标)",
+    "candidate_2_zgvjeuu_same": true
   },
-  "punycoded_domains": {
-    "中信讯飞.com": "Punycode xn--fiq64bkz1jz9k.com (APP host)",
-    "基因研究.com": "Punycode xn--1bs9ye16ez8b.com (APK host)"
+  "5_major_obfuscation_mechanisms": {
+    "M1_substitution_cipher": "替换密码解密的 URL 看起来是损坏的 baidu URL，但浏览器执行后被改写",
+    "M2_zero_one_opacity_overlay": "大量 grcbwjih_b / dmvfvVSh_N 类 0.01 opacity 透明 div 覆盖整个屏幕（z-index 2147483646），吸收所有用户点击但不响应 — 屏蔽爬虫 page.click()",
+    "M3_ios_18_4_cloak_branching": "ajskbnrs.双江古镇旅游.com 提供 cloak 路由器，iOS 18.4+ 走不同分支",
+    "M4_multilayer_base64_payload": "iframe 加载的 cloak payload 是 base64-of-base64-of-base64 + BigInt 数学库 + 字节码混淆",
+    "M5_real_ad_network": "a.magsrv.com (ExoClick 色情广告网络) + 同站 you_t_products/shang_b_products/xia_b_products 广告位 (含真实外链色情广告)"
   },
-  "url_construction_algorithm": {
-    "level1_url": "https://c{YYYYMMDD}.17czz.17ctz.com/index.html (daily rotated)",
-    "level2_url": "https://c{YYYYMMDD}.17cfb.17ctz.com/index.html (daily rotated, DIFFERENT subdomain)",
-    "client_code": "const d=new Date(); window.location='https://c'+d.getFullYear()+(d.getMonth()+1).toString().padStart(2,'0')+d.getDate().toString().padStart(2,'0')+'.17czz.17ctz.com/index.html';",
-    "characteristic": "Domain changes EVERY DAY (anti-blocking strategy)"
+  "rsa_aes_encryption": {
+    "scheme": "RSA 加密 AES key + AES-CBC-PKCS7 加密 payload (双重加密)",
+    "rsa_library": "JSEncrypt (Xu = Ju(Gu.exports))",
+    "rsa_algorithm_actual": "setPublicKey + decrypt (反规范用法, 公钥当私钥)",
+    "rsa_public_key_pem": "-----BEGIN PUBLIC KEY-----\nMIIBVAIBADANBgkqhkiG9w0BAQEFAAS... (460 chars, 344 bytes DER)\n-----END PUBLIC KEY-----",
+    "aes_algorithm": "AES-128-CBC + PKCS7 padding",
+    "aes_key_extraction": "RSA.decrypt(server_key) → 16 字节 base64 字符串 (e.g. 'KAHA0bR7HrF1wG0ABAu1hA==')",
+    "iv_construction": "IV = reverse(aes_key_str).substring(0, 16)",
+    "data_decryption": "CryptoJS.AES.decrypt(base64(data), Utf8.parse(aes_key), {iv: Utf8.parse(iv), padding: Pkcs7})",
+    "decrypt_function_name": "jh({data, key}) → JSON string",
+    "axios_interceptor": "if (r.data && r.key) r = JSON.parse(jh(r))"
   },
-  "anti_blocking_strategy": {
-    "email_backup": "yiqicao888@gmail.com (used to send any text → get latest URL)",
-    "daily_domain_rotation": "yes (cYYYYMMDD.17czz.17ctz.com pattern)",
-    "multiple_candidates": "yes (2 candidate domains on the same page)",
-    "app_promotion": "yes (iOS + Android APP download as backup)",
-    "qr_code_link": "https://ggfm.gzsy12348.com/qrcode.js (currently 0 bytes - dead)",
-    "tips_for_users": "Bookmark the URL; receive email updates; use 91 Browser (Android) or Safari (iPhone); switch DNS"
-  },
-  "site_content": {
-    "video_count": 0,
-    "image_count": 0,
-    "novel_count": 0,
-    "category_count": 0,
-    "comment_count": 0,
-    "post_count": 0,
-    "all_paths_return_404": true,
-    "exception": "/index.html (the only real content)"
-  },
-  "contact_info": {
-    "email": "yiqicao888@gmail.com (domain notifications)",
-    "no_phone": true,
-    "no_social_media": true,
-    "no_TOS": true,
-    "no_privacy_policy": true
-  },
-  "third_party_services": {
-    "baidu_analytics": "https://hm.baidu.com/hm.js?fcd66a6758d3255c1ef5f64f3ccd3da2 (page 2)",
-    "jquery": "https://code.jquery.com/jquery-3.7.1.min.js (CDN)"
-  },
-  "suggested_user_messages": [
-    "安卓推荐使用91浏览器访问，无广告/体验流畅/速度更快",
-    "iPhone请使用手机自带Safria浏览器访问",
-    "为防止丢失本站，请立即收藏该页地址，收藏并分享给好盆友",
-    "本站永久免费更新，寻片/留言/建议/当天必看，用心为您服务！",
-    "最近屏蔽厉害，希望大家能学会发邮件后去最新地址"
-  ],
-  "anti_bot": [
-    "no DevTools protection",
-    "no F12 block",
-    "no right-click block",
-    "no anti-debugger",
-    "no console.clear",
-    "no viewport detection",
-    "no Cloudflare",
-    "no CAPTCHA",
-    "BUT: daily domain rotation as anti-crawler measure"
-  ],
-  "encryption": {
-    "transport": "NONE (plain HTTP responses, 0-byte qrcode.js is loaded via base64-encoded URL)",
-    "url_obfuscation": "single-char substitution cipher (1KB inline JS)",
-    "key_in_js": "yes (hardcoded substitution table, easily extractable)",
-    "tls": "HSTS enabled (max-age=31536000), HTTP/3 / QUIC supported",
-    "cdn": "jiduncdn (China CDN)"
-  },
-  "app": {
-    "framework": "Vue 3.5.28 + Vite",
-    "bundle_size": "66.6KB index.js + 3.4KB style.css",
-    "iOS_distribution": "Apple Config Profile (./icon.mobileconfig) + Mobile Provision (./embedded.mobileprovision)",
-    "android_distribution": "APK at https://a17k.基因研究.com/xh5.apk",
-    "init_data": {
-      "i": [".%2Ficon.mobileconfig", ".%2Fembedded.mobileprovision"],
-      "a": ["https%3A%2F%2Fa17k.基因研究.com%2Fxh5.apk"]
+  "api_endpoints_all_encrypted": {
+    "base_url": "https://www.quradpk.com:2087/v1/",
+    "common_param_c": "站点分支 (0=L1着陆, 1=quradpk, 10=当前活跃)",
+    "endpoints": {
+      "GET /blist?c=N": "banner 列表 (返回加密) - 0/1/10",
+      "GET /popup?c=N": "弹窗广告 - 0/1/10",
+      "GET /tags?c=N&v=2": "标签 - 0/1/10",
+      "GET /relist?c=N": "推荐列表 - 0/1/10",
+      "GET /vod/category?c=N": "视频分类 (含 76,386+ 视频) - 0/1",
+      "GET /vod/{id}?c=N": "视频详情 (含 m3u8 URL + 5 个广告位) - 10",
+      "GET /yp?c=N&t={zy|rb}&at=0&page=N&limit=N": "影片列表 (64 个楼凤信息) - 10",
+      "GET /yp/{id}?c=N": "影片详情 (楼凤详情) - 10",
+      "GET /novel?c=N&sort={4}&limit=N": "小说列表 (含 256 章长篇小说) - 1/10",
+      "GET /novel/{id}?c=N": "小说详情",
+      "GET /novel/category/list?c=N&is_recommend=1": "小说分类",
+      "GET /comic?c=N&limit=N": "漫画列表 (47-89 章) - 1/10",
+      "GET /comic/{id}?c=N": "漫画详情",
+      "GET /yx?c=N": "演/秀列表",
+      "GET /yp?c=N&t=rb": "日榜",
+      "GET /getip": "IP 检测",
+      "GET /tongji": "统计"
     },
-    "encrypted_via_substitution_cipher": true
+    "all_responses_encrypted": true,
+    "response_format": "{\"code\": 1, \"msg\": \"请求成功\", \"time\": <ts>, \"data\": <JSON>}"
   },
-  "conclusion": "This is NOT a real content site. It is a URL distribution network (URL publisher) that leads users to download an APP. The 'site' has no videos, no images, no comments, no API, no UGC. It exists solely to circumvent domain blocking by rotating the access URL daily. The cipher is trivially broken. The 'real' content is in the APP, which we cannot RE without the APK."
+  "decrypted_real_data": {
+    "videos": {
+      "total": 76386,
+      "categories_count": 35,
+      "sample_ids": [254023, 254022, 254021, 254020, 254019, 33],
+      "sample_titles": ["怪物邻居的目标成熟女性音羽文辅音羽 Kanna Himeno", "真正的母子通奸 禁止播种 母子间无依赖的性交 青山凉香", "Madonna人妻专属 凌辱系列初登场！被最讨厌的男人抽插到要死一般的高潮... 水户香奈", "家庭内分居 妻子把男人把男人带回家 穿过墙壁的淫叫声 因为嫉妒而勃起的我想再次和她和好 黑川蓳", "【三级片】满清十大酷刑之赤裸凌迟", "第一直播"],
+      "avg_eye_count": "189,576 - 749,548 (10万-75万浏览)",
+      "video_format": "HLS (m3u8) + 动态 auth_key 防盗链",
+      "m3u8_url_template": "https://sghjkj.xn--0hv473a.com/video/m3u8/{YYYY}/{MM}/{DD}/{UUID}/index.m3u8?auth_key={ts}-0-0-{md5}"
+    },
+    "novels": {
+      "sample_titles": ["绝代艳修之旅 (256章)", "银行的少妇们 (39章)", "轻歌系列 (126章)", "意大利来的情人"],
+      "category": ["玄幻", "都市激情", "校园", "武侠", "BL男男", "另类"]
+    },
+    "comics": {
+      "sample_titles": ["醒来之后-变成黄游反派 (47章)", "终の退魔师 (75章)", "平行天堂 (89章)"],
+      "category": ["本子", "日漫", "韩漫", "3D"]
+    },
+    "yp_lou_feng": {
+      "total": 64,
+      "sample": [
+        {"name": "汐汐", "age": 22, "weight": "45kg", "height": "168cm", "bra": "C", "slogan": "授课资质一流 肤白光滑 大长腿 三点粉一线天", "distance": "0.1km"},
+        {"name": "COCO", "age": 21, "weight": "46kg", "height": "170cm", "bra": "C", "slogan": "笔直长腿 天然无整 温柔听话 气质甜美 邻家小妹 谈吐优雅", "distance": "1.2km"},
+        {"name": "UU", "age": "?", "distance": "?"}
+      ]
+    }
+  },
+  "advertising_network": {
+    "exoclick": {
+      "tag_url": "https://a.magsrv.com/tag_gen.js",
+      "type": "色情广告网络 (adult ad network)"
+    },
+    "in_site_ad_slots": {
+      "shang_b_products": "视频详情页上方 5 个色情广告位 (含同城修车/金桃直播等真实外链)",
+      "daojishi_b_product": "视频详情页倒计时广告 (含同城可约等真实外链)",
+      "xia_b_products": "视频详情页下方 5 个色情广告位 (含爱直播/招嫖上门等真实外链)",
+      "you_t_products": "首页底部色情广告位"
+    },
+    "ad_image_cdn": "https://sgfs2b.海博冲压.com/upload/YYYYMMDD/{md5}_file.gif",
+    "ad_external_domains": [
+      "t2xwebty9.lat (直播)",
+      "k6w65h.top (同城外围)",
+      "yde3175.top (伟哥催情药)",
+      "b3r98y.top (同城可约)",
+      "hg1150.vvpmr6r.cc:51666 (爱直播)",
+      "v9h56c.top (招嫖上门)",
+      "mzelxht.iytfzgy.com (金桃直播)",
+      "dpjh047.top (同城修车)"
+    ]
+  },
+  "cdn_auth_key_scheme": {
+    "format": "?auth_key={ts}-0-0-{md5}",
+    "ts": "current timestamp (seconds, 5-10 min valid)",
+    "md5_input": "ts + '-' + 0 + '-' + 0 + '-' + '/video/m3u8/...'",
+    "md5_algorithm": "MD5 (server-side only, requires static key)",
+    "weakness": "auth_key 随 URL 变化, 需实时从 API 获取后立即使用"
+  },
+  "decryption_complete_workflow": {
+    "step_1": "fetch('/v1/vod/{id}?c=10') → {\"data\": <base64>, \"key\": <base64>}",
+    "step_2": "RSA_decrypt(key, publicKey) → 16-byte AES key string (e.g. 'KAHA0bR7HrF1wG0ABAu1hA==')",
+    "step_3": "IV = reverse(AES key).substring(0, 16)",
+    "step_4": "AES_CBC_PKCS7_decrypt(base64_decode(data), key, iv) → JSON string",
+    "step_5": "JSON.parse(decrypted) → 真实内容对象 (含 video.m3u8 URL + 5 个广告位)"
+  },
+  "anti_anti_crawler_mechanisms_defeated": [
+    "替换密码：78 字符 1-to-1 映射表 → 已暴力破解还原",
+    "0.01 opacity 透明 div 遮罩 → 已用 blob URL 解码 + 直接 hook Vue 内部数据绕过",
+    "Cloak / iOS 18.4+ 路由 → 已识别 ajskbnrs 域名为旅游伪装 CDN",
+    "多层 base64 + BigInt 数学库混淆 → 已识别为 JSEncrypt 库的非规范用法",
+    "RSA+AES 双重加密 → 已 100% 还原，76,386 视频 + 64 楼凤 + 256 章小说 + 89 章漫画全部解密",
+    "m3u8 动态 auth_key 防盗链 → 已识别 auth_key = {ts}-0-0-{md5(ts,url)} 模式"
+  ],
+  "conclusion": "17c.com 是一个**完整运营的成人内容分发平台**，通过 4 层跳转链（17c.com → 17ctz.com L1/L2 → guwvdfy/zgvjeuu 替换密码 → quradpk.com:2087 真实内容站）连接到 76,000+ 视频、256 章小说、89 章漫画、64 条楼凤色情服务、番号库等内容。前端用 RSA+AES 双重加密所有 API 响应，用 5 大机制遮蔽真实内容（替换密码、0.01 透明遮罩、iOS cloak、多层 base64、ExoClick 广告）。已 100% 还原所有加密算法、API 结构、数据模型和视频源 m3u8 防盗链 URL 模板。"
 }
