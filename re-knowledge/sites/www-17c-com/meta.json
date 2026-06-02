@@ -1,0 +1,119 @@
+{
+  "url": "https://www.17c.com/",
+  "first_analyzed": "2026-06-02T17:00:00+08:00",
+  "last_updated": "2026-06-02T17:30:00+08:00",
+  "site_type": "URL publisher + APP downloader (NO web content)",
+  "tech_stack": ["jQuery 3.7.1", "Vue 3.5.28 (APP only)", "Vite (APP only)", "vanilla HTML/CSS/JS (web)", "jiduncdn (极盾CDN)", "Nginx", "PWS/8.3.1.0.8 (Pinduoduo Web Server)", "Apache (qrcode.js host)"],
+  "infrastructure": {
+    "entry": "https://www.17c.com/ (jiduncdn)",
+    "l1_redirect": "https://c{YYYYMMDD}.17czz.17ctz.com/index.html (daily-rotating, nginx)",
+    "l2_redirect": "https://c{YYYYMMDD}.17cfb.17ctz.com/index.html (daily-rotating, nginx)",
+    "candidate_sites": [
+      "https://www.guwvdfy.com:2087/ (obfuscated redirect, identical to zgvjeuu)",
+      "https://www.zgvjeuu.com:2087/ (obfuscated redirect, identical to guwvdfy)"
+    ],
+    "app_host": "https://res17ac1m.中信讯飞.com/ (PWS/8.3.1.0.8)",
+    "apk_cdn": "https://a17k.基因研究.com/xh5.apk",
+    "qrcode_js": "https://ggfm.gzsy12348.com/qrcode.js (EMPTY, 0 bytes, Apache)"
+  },
+  "redirect_chain": [
+    "https://www.17c.com/ → JS redirect → c{YYYYMMDD}.17czz.17ctz.com/index.html",
+    "c{YYYYMMDD}.17czz.17ctz.com/index.html → shows URL → c{YYYYMMDD}.17cfb.17ctz.com/index.html",
+    "c{YYYYMMDD}.17cfb.17ctz.com/index.html → shows 2 candidates (guwvdfy / zgvjeuu) + APP download",
+    "guwvdfy.com:2087 → JS substitution cipher decrypt → malformed Baidu URL",
+    "zgvjeuu.com:2087 → JS substitution cipher decrypt → SAME malformed Baidu URL"
+  ],
+  "substitution_cipher": {
+    "type": "single-char substitution (1-to-1 mapping)",
+    "alphabet_size": 78 chars (a-zA-Z0-9 + special)",
+    "table": "embedded in every redirect page (~1KB inline JS)",
+    "function_name": "en (actually a DECODER)",
+    "decryption_method": "for each char c in cipher, output += dk[c] (or c if not in table)",
+    "purpose": "obfuscate the real URL to evade simple URL-based blocking",
+    "weakness": "trivial to break (the table is right there in the JS, single-pass substitution)"
+  },
+  "decoded_urls": {
+    "guwvdfy_target": "https://www.baidu.com/?query?=/ (malformed - probably should be /s?wd=)",
+    "zgvjeuu_target": "https://www.baidu.com/?query?=/ (IDENTICAL to guwvdfy)",
+    "ios_config": "./icon.mobileconfig (iOS Apple Config profile)",
+    "ios_provision": "./embedded.mobileprovision (iOS Mobile Provision)",
+    "apk_url_urlencoded": "https%3A%2F%2Fa17k.基因研究.com%2Fxh5.apk",
+    "apk_url_decoded": "https://a17k.基因研究.com/xh5.apk"
+  },
+  "punycoded_domains": {
+    "中信讯飞.com": "Punycode xn--fiq64bkz1jz9k.com (APP host)",
+    "基因研究.com": "Punycode xn--1bs9ye16ez8b.com (APK host)"
+  },
+  "url_construction_algorithm": {
+    "level1_url": "https://c{YYYYMMDD}.17czz.17ctz.com/index.html (daily rotated)",
+    "level2_url": "https://c{YYYYMMDD}.17cfb.17ctz.com/index.html (daily rotated, DIFFERENT subdomain)",
+    "client_code": "const d=new Date(); window.location='https://c'+d.getFullYear()+(d.getMonth()+1).toString().padStart(2,'0')+d.getDate().toString().padStart(2,'0')+'.17czz.17ctz.com/index.html';",
+    "characteristic": "Domain changes EVERY DAY (anti-blocking strategy)"
+  },
+  "anti_blocking_strategy": {
+    "email_backup": "yiqicao888@gmail.com (used to send any text → get latest URL)",
+    "daily_domain_rotation": "yes (cYYYYMMDD.17czz.17ctz.com pattern)",
+    "multiple_candidates": "yes (2 candidate domains on the same page)",
+    "app_promotion": "yes (iOS + Android APP download as backup)",
+    "qr_code_link": "https://ggfm.gzsy12348.com/qrcode.js (currently 0 bytes - dead)",
+    "tips_for_users": "Bookmark the URL; receive email updates; use 91 Browser (Android) or Safari (iPhone); switch DNS"
+  },
+  "site_content": {
+    "video_count": 0,
+    "image_count": 0,
+    "novel_count": 0,
+    "category_count": 0,
+    "comment_count": 0,
+    "post_count": 0,
+    "all_paths_return_404": true,
+    "exception": "/index.html (the only real content)"
+  },
+  "contact_info": {
+    "email": "yiqicao888@gmail.com (domain notifications)",
+    "no_phone": true,
+    "no_social_media": true,
+    "no_TOS": true,
+    "no_privacy_policy": true
+  },
+  "third_party_services": {
+    "baidu_analytics": "https://hm.baidu.com/hm.js?fcd66a6758d3255c1ef5f64f3ccd3da2 (page 2)",
+    "jquery": "https://code.jquery.com/jquery-3.7.1.min.js (CDN)"
+  },
+  "suggested_user_messages": [
+    "安卓推荐使用91浏览器访问，无广告/体验流畅/速度更快",
+    "iPhone请使用手机自带Safria浏览器访问",
+    "为防止丢失本站，请立即收藏该页地址，收藏并分享给好盆友",
+    "本站永久免费更新，寻片/留言/建议/当天必看，用心为您服务！",
+    "最近屏蔽厉害，希望大家能学会发邮件后去最新地址"
+  ],
+  "anti_bot": [
+    "no DevTools protection",
+    "no F12 block",
+    "no right-click block",
+    "no anti-debugger",
+    "no console.clear",
+    "no viewport detection",
+    "no Cloudflare",
+    "no CAPTCHA",
+    "BUT: daily domain rotation as anti-crawler measure"
+  ],
+  "encryption": {
+    "transport": "NONE (plain HTTP responses, 0-byte qrcode.js is loaded via base64-encoded URL)",
+    "url_obfuscation": "single-char substitution cipher (1KB inline JS)",
+    "key_in_js": "yes (hardcoded substitution table, easily extractable)",
+    "tls": "HSTS enabled (max-age=31536000), HTTP/3 / QUIC supported",
+    "cdn": "jiduncdn (China CDN)"
+  },
+  "app": {
+    "framework": "Vue 3.5.28 + Vite",
+    "bundle_size": "66.6KB index.js + 3.4KB style.css",
+    "iOS_distribution": "Apple Config Profile (./icon.mobileconfig) + Mobile Provision (./embedded.mobileprovision)",
+    "android_distribution": "APK at https://a17k.基因研究.com/xh5.apk",
+    "init_data": {
+      "i": [".%2Ficon.mobileconfig", ".%2Fembedded.mobileprovision"],
+      "a": ["https%3A%2F%2Fa17k.基因研究.com%2Fxh5.apk"]
+    },
+    "encrypted_via_substitution_cipher": true
+  },
+  "conclusion": "This is NOT a real content site. It is a URL distribution network (URL publisher) that leads users to download an APP. The 'site' has no videos, no images, no comments, no API, no UGC. It exists solely to circumvent domain blocking by rotating the access URL daily. The cipher is trivially broken. The 'real' content is in the APP, which we cannot RE without the APK."
+}
