@@ -1,0 +1,122 @@
+{
+  "site": "www.jd.com",
+  "display_name": "京东商城",
+  "domain": "https://www.jd.com",
+  "analyzed_at": "2026-06-02",
+  "analyzer": "MiniMax M3 (web-login-reverse skill)",
+  "summary": {
+    "task": "完整协议化通过（API 反爬 + 登录协议化含滑块）",
+    "status": "Phase 1 (API 协议化) + Phase 2 (登录协议化格式) 完成；Phase 3 (jcap 滑块协议化) 待 OCR/打码",
+    "phase1_apis": "100% 协议化调用（h5st 5.3 完整还原，29 条 feed 数据成功返回）",
+    "phase2_login_format": "100% 协议化 POST 格式（22 字段，2150 chars body，服务端识别正确）",
+    "phase2_rsa": "1024-bit RSA 密码加密 Node.js 端验证通过（172 chars base64）",
+    "phase3_jcap": "触发流程确认，待 OCR / 接入打码平台还原 vt 算法"
+  },
+  "tech_stack": {
+    "frontend": "HTML + jQuery 1.6.4 + 自研组件（newLogin 模块）",
+    "captcha_sdk": "JDCaptcha (jcap.m.jd.com) v2.8.5 + WebAssembly，**非极验 geetest**",
+    "signing": "ParamsSign (js_security_v3_0.1.4.js, 236KB) + CryptoJS HmacSHA256/MD5/SHA256",
+    "encryption": "JSEncrypt (jdJsencrypt.min.js) 1024-bit RSA + jrsecstatic.jdpay.com summer-cryptico",
+    "risk_control": "sgm-m.jd.com + jra.jd.com + cactus.jd.com + gia.jd.com + seq.jd.com",
+    "fingerprint": "eid2 (jdd03 + eid + 加密串) + fp (sessionId) + eid + sa_token (RSA 加密 768 字符)"
+  },
+  "endpoints": {
+    "phase1_apis": {
+      "request_algo": "https://cactus.jd.com/request_algo",
+      "behavior_report": "https://cactus.jd.com/behavior_report",
+      "pc_home_feed": "https://api.m.jd.com/api?functionId=pc_home_feed&appid=www-jd-com"
+    },
+    "phase2_login": {
+      "login_page": "https://passport.jd.com/uc/login",
+      "loginService": "https://passport.jd.com/uc/loginService?r=...&version=2015",
+      "jcap_fp": "https://jcap.m.jd.com/cgi-bin/api/fp",
+      "jcap_check": "https://jcap.m.jd.com/cgi-bin/api/check",
+      "jcap_verify": "https://jcap.m.jd.com/cgi-bin/api/verify (待分析)",
+      "jcap_slide": "https://ivs.jd.com/slide/v.html (jdSlide)",
+      "jsTk": "https://jra.jd.com/jsTk.do",
+      "sgm_init": "https://sgm-m.jd.com/h5/init"
+    }
+  },
+  "algorithms": {
+    "h5st_v5.3": {
+      "type": "ParamsSign",
+      "version": "5.3",
+      "appId": "73806",
+      "fp_source": "client 自生成 16 字符 hex",
+      "segments": 10,
+      "separator": ";",
+      "stack": "ParamsSign + CryptoJS (HmacSHA256/MD5/SHA256) + 自研 sliding window",
+      "recovered": true,
+      "script": "scripts/11_full_call_in_browser.js"
+    },
+    "rsa_password": {
+      "key_size": 1024,
+      "padding": "PKCS#1 v1.5",
+      "output_encoding": "base64 (172 chars)",
+      "key_source": "HTML #pubKey hidden input",
+      "library": "JSEncrypt (Node.js jsencrypt 兼容)",
+      "script": "scripts/14_rsa_encrypt_test.js"
+    },
+    "jcap_fingerprint": {
+      "type": "WebAssembly + JS SDK",
+      "tdat_version": 99992,
+      "app_type": 3,
+      "si_algorithm": "需还原 jcap_ujb96b.js 内部 WASM",
+      "vt_algorithm": "需还原 jcap verify 内部签名"
+    }
+  },
+  "scripts": {
+    "phase1_api": "scripts/11_full_call_in_browser.js",
+    "phase2_rsa": "scripts/14_rsa_encrypt_test.js",
+    "phase2_protocol": "scripts/15_login_protocol.js",
+    "phase2_browser": "scripts/16_full_login_browser.js",
+    "phase2_capture": "scripts/17_capture_full_login.js"
+  },
+  "login_form_fields": {
+    "uuid": "36 字符 UUID v4",
+    "eid": "90 字符 base32 (浏览器指纹加密)",
+    "fp": "32 字符 hex MD5 (sessionId)",
+    "eid2": "128 字符 (jdd03 + eid + 加密串)",
+    "sa_token": "768 字符 (RSA 加密的服务端 token)",
+    "pubKey": "MIGfMA0GCSqGSIb3DQEBAQUAA4GN...ABAQAB (1024-bit RSA 公钥 PEM)",
+    "useSlideAuthCode": "1 (滑块启用)",
+    "graphicCaptchaStatus": "1 (图形验证码启用)",
+    "graphicCaptchaAppId": "1000803"
+  },
+  "login_post_body_template": {
+    "url": "https://passport.jd.com/uc/loginService?r={rand}&version=2015",
+    "method": "POST",
+    "content_type": "application/x-www-form-urlencoded; charset=utf-8",
+    "fields_count": 22,
+    "fields": [
+      "uuid", "eid", "fp", "eid2", "_t", "loginType",
+      "loginname", "nloginpwd (RSA 加密)", "authcode",
+      "pubKey", "sa_token", "seqSid", "useSlideAuthCode",
+      "pageSource", "pageLocation", "firstShowAccountLoginPage",
+      "ssoDomains", "expgroup", "graphicCaptchaSessionId",
+      "graphicCaptchaJwtToken", "graphicCaptchaVerifyToken (vt)",
+      "h5st (登录页只签 loginname)"
+    ],
+    "captured_body_length": 2150
+  },
+  "login_responses": {
+    "200_username_param_invalid": "({\"username\":\"图形验证码参数校验失败，请刷新重试！\"})",
+    "200_success": "({\"success\":\"https://passport.jd.com/relay/loginRelay.htm?p=...\"})",
+    "200_transfer": "({\"transfer\":\"...\"})",
+    "200_rescue": "({\"rescue\":\"...\"})  - 二次验证 URL",
+    "200_newSafeVerify": "({\"newSafeVerify\":true,\"safeVerifyUrl\":\"...\"}) - 魔方安全验证",
+    "200_closeapp": "({\"closeapp\":\"...\"})"
+  },
+  "cookies": {
+    "pt_key": "登录成功后服务端设置 (HttpOnly)",
+    "pt_pin": "登录成功后服务端设置 (username, 7 天有效)",
+    "pt_token": "登录 token",
+    "3AB9D23F7A4B3C9B": "eid 缓存 cookie (jdd03 + eid)"
+  },
+  "artifacts": {
+    "jcap_sdk_raw": "已抓到 storage.360buyimg.com/jsresource/jcap/version/v2.8.5/1/jcap_ujb96b.js",
+    "params_sign_raw": "已抓到 storage.360buyimg.com/webcontainer/main/js_security_v3_0.1.4.js (236KB)",
+    "jsencrypt_raw": "已抓到 storage.jd.com/retail-mall/jdc_user_login/pc/user/login/0.0.24/js/newLogin/jdJsencrypt.min.js",
+    "captures": "已抓到完整 POST /uc/loginService body 2150 chars + 完整响应"
+  }
+}
