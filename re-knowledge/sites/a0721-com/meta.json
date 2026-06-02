@@ -1,134 +1,193 @@
 {
   "url": "https://www.a0721.com/",
   "first_analyzed": "2026-06-02T02:00:00+08:00",
-  "last_updated": "2026-06-02T04:50:00+08:00",
-  "tech_stack": ["Nuxt.js 3", "Vue 3", "Vue Router SPA", "Element Plus", "Cloudflare CDN", "Baidu Tongji", "Google Tag Manager", "DPlayer", "CryptoJS"],
+  "last_updated": "2026-06-02T07:40:00+08:00",
+  "tech_stack": ["Nuxt 3 (SSR/SPA hybrid)", "Vue 3", "Vue Router 4", "Element Plus", "Element Plus Icons", "Cloudflare CDN", "OpenResty (custom reverse proxy)", "Tengine (Alibaba) on publices CDN", "Baidu Tongji", "DPlayer", "HLS.js (lazy-loaded)", "CryptoJS (AES-256-CBC + MD5 + SHA-1/256/512)"],
   "redirect_chain": [
-    "https://www.a0721.com/ -> 302 -> https://kk2b29.com/",
-    "kk2b29.com/ -> 15s countdown -> kk2b29.com/home/",
-    "kk2b29.com/home/ loads portal from https://portal.instruno.com/public2/"
+    "https://www.a0721.com/ -> 302 -> https://kk2b29.com/  (Cloudflare 302)",
+    "kk2b29.com/ -> 15s countdown page (tiaozhuan) -> kk2b29.com/home/ (anti-debug: debugger + console.clear + setInterval bait)",
+    "kk2b29.com/home/ -> SSR HTML loads JS bundles from https://portal.instruno.com/public2/assets/"
   ],
-  "real_brand": "4hu (四虎)",
+  "real_brand": "4hu (四虎, 4HU.TV)",
   "cdn_base": "https://portal.instruno.com/public2",
-  "video_cdn_domains": {
-    "titlepic_thumbs": "https://pppp.642p.com/images/{YYYYMM}/{id}/cover.txt",
-    "yulan_preview": "https://pppp.642p.com/images/{YYYYMM}/{id}/preview.mp4",
-    "mp4_storage": "https://d1.xia12345.com/video/{YYYYMM}/{id}/{720|hd}.mp4",
-    "m3u8_storage": "/videos/{YYYYMM}/{id}/hls/index.m3u8 (or /newhd/)"
+  "infrastructure": {
+    "app_origin": "https://kk2b29.com (Cloudflare 302 entry, rotates frequently - kk2b29/kk9x94/kk2b29...)",
+    "app_origin_alt": "https://4hu.tv (alternative origin, returns 502 in some networks but reachable via proxy)",
+    "static_cdn": "https://portal.instruno.com/public2 (openresty)",
+    "m3u8_cdn_pool": ["https://m3u8.34cdn.com", "https://m3u8.41cdn.com", "https://m3u8.44cdn.com", "https://m3u8.46cdn.com", "https://m3u8.47cdn.com", "https://m3u8.48cdn.com"],
+    "m3u8_cdn_for_actors": ["https://m3u8.73cdn.com", "https://m3u8.74cdn.com"],
+    "m3u8_cdn_for_self_upload": ["https://publices.ttjkbx.com (Tengine, gzip-compressed)"],
+    "preview_cdn": "https://pppp.642p.com (cover.txt and preview.mp4)",
+    "mp4_cdn": "https://d1.xia12345.com (raw 720.mp4 and hd.mp4)",
+    "image_cdn": "https://img.997pp.com (text/image galleries)"
   },
-  "image_cdn_domains": {
-    "tu_img": "https://img.997pp.com/Tu/{YYYYMM}/{hash}.jpg"
-  },
-  "site_type": "Adult content aggregator (read-only viewer, no UGC)",
+  "site_type": "Adult video + image gallery aggregator (read-only viewer, no UGC)",
   "anti_bot": [
-    "F12/Ctrl+Shift+I/J/C blocked",
-    "Right-click blocked",
-    "DevTools detection by viewport size delta",
-    "debugger statement every 80ms",
-    "console.clear() every 1s",
-    "Bait element with getter trap",
-    "15s countdown on initial visit",
-    "18+ age gate"
+    "F12 / Ctrl+Shift+I/J/C / Ctrl+U / Ctrl+S blocked via keydown listener",
+    "Right-click context menu blocked",
+    "DevTools detection by viewport size delta (window.outerWidth - innerWidth > 160)",
+    "debugger statement every 80ms when DevTools detected",
+    "console.clear() every 1s when DevTools detected",
+    "Bait element with debugger-trap getter (triggers on .id / .outerHTML / .innerHTML / .textContent)",
+    "15s countdown on initial visit (tiaozhuan page)",
+    "18+ age gate (click 同意|agree|enter|进入)",
+    "Cloudflare anti-bot (origin requires browser TLS fingerprint)",
+    "All UI strings AES-encrypted in JS to make scraping harder"
   ],
   "encryption": {
-    "algorithm": "AES-256-CBC",
+    "transport_cipher": "AES-256-CBC",
     "key": "22946bc50fd63164b79df55070a85a92",
     "iv": "kaixin1234567890",
     "padding": "Pkcs7",
-    "transport_format": "URL-safe Base64 ({data:\"<b64>\"})"
+    "transport_encoding": "URL-safe Base64 (replace +/= with -_/no padding)",
+    "wrapper_format": {"status": 1, "data": "<urlsafe-b64>"}",
+    "hls_segment_encryption": "NONE (segments are plain video/mp2t ts files)",
+    "m3u8_compression": "publices.ttjkbx.com serves m3u8 with Content-Encoding: gzip (saves 70% bandwidth)"
   },
-  "external_resources": [
-    "https://hm.baidu.com/hm.js?cab3ebe4da501bca493302d8a74d221c (Baidu Tongji)",
-    "https://portal.instruno.com/public2/ (main CDN)"
-  ],
-  "complete_route_table": [
-    {"name": "home", "path": "/home"},
-    {"name": "top", "path": "/top"},
-    {"name": "top-type", "path": "/top/:type()"},
-    {"name": "search", "path": "/search"},
-    {"name": "category-list", "path": "/category-list"},
-    {"name": "category", "path": "/category/:category(.*)*"},
-    {"name": "view-id", "path": "/view/:id()"},
-    {"name": "video", "path": "/video/:avkey()"},
-    {"name": "series", "path": "/series/:series()"},
-    {"name": "help", "path": "/help"},
-    {"name": "help-id", "path": "/help/:id()"}
-  ],
-  "json_api_endpoints": {
-    "config": "https://portal.instruno.com/public2/json/a.json (ad/UI config, all ad slots)",
-    "latest_videos": "https://portal.instruno.com/public2/json/latest.json (latest/latest2/movie, 20 items each)",
-    "top_tags": "https://portal.instruno.com/public2/json/top-tags.json (keyword array)",
-    "top": "https://portal.instruno.com/public2/json/top.json (empty/error)",
-    "category_list": "https://portal.instruno.com/public2/json/category-list.json (full category tree)",
-    "category_paginated": "https://portal.instruno.com/public2/json/category/{classid}-{page}.json (24/page)",
-    "news_detail": "https://portal.instruno.com/public2/json/view/{news_id}.json (image gallery, no comments)",
-    "video_detail": "https://portal.instruno.com/public2/json/video/{video_id}.json (mp4/m3u8 + 10 related)"
+  "app_config_runtime": {
+    "close_dialog": false,
+    "cdn_url": "https://portal.instruno.com/public2",
+    "search_url": "",
+    "json_url": "https://portal.instruno.com/public2/json",
+    "api_change_json": true
   },
-  "dynamic_api_endpoints": [
-    "GET /api/v3/top?type=N",
-    "GET /api/v2/getAd",
-    "GET /api/v2/series?series={id}&page={N}",
-    "GET /api/v2/search?keyword={kw}&classid={cid}&page={N}",
-    "GET /api/v2/help",
-    "GET /api/v2/help/{id}",
-    "GET /api/v2/topTags"
-  ],
-  "ads_domains": [
-    "www.950k531308.cc", "153.43.87.127:18027", "fudelv.cc", "pg43r.pg430329.cc",
-    "4855e.2312337.cc", "ccgh9b57.dejqpmm.com", "uiery7.com", "xbcnv1.com",
-    "27c.27pg10689.cc", "pg692707.cc", "www.28y156611.cc"
-  ],
-  "forum_finding": {
-    "user_claim": "User remembered a forum that supports posting images, viewing comments, posting comments",
-    "investigation_result": "NO FORUM EXISTS - the site is purely a read-only content viewer",
-    "evidence": [
-      "Complete route table has 11 routes - none for /forum, /post, /comment, /reply, /pl, /bbs",
-      "JS bundle grep for 'comment|reply|forum|pl.json|discuss|publish|贴子|帖子|留言|评论' returned ONLY DPlayer danmaku references (video bullet comments, not post comments)",
-      "/json/view/{news_id}.json detail response has NO comments/replies fields (only id, title, titlepic, classid, newstime, content, prev_and_next, breadcrumb, category_*)",
-      "/json/video/{video_id}.json detail response has NO comments/replies fields (only id, title, titlepic, yulan, mp4, m3u8, keyboard, classid, newstime, prev_and_next, breadcrumb, category_*, maybe)",
-      "No <textarea>, <input type=submit>, 'comment', 'reply' elements in rendered DOM of /view/{id}",
-      "No /api/v2/comment*, /api/v2/pl*, /api/v2/reply* endpoints found in any JS bundle",
-      "All 11 dynamic API endpoints are read-only (GET): top, getAd, series, search, help, topTags"
-    ],
-    "what_user_likely_thought_was_a_forum": "The '图文' (graphics/image) and '小说' (novel) categories under 'news' tbname - these are READ-ONLY image galleries (with N pictures) and READ-ONLY novel chapters. They are NOT a forum."
+  "video_player_setup": {
+    "component_name": "VueDPlayerHls",
+    "underlying_lib": "DPlayer (DIYGod)",
+    "hls_backend": "Hls.js (lazy-loaded from cdn_url + '/js/hls.min.js')",
+    "fallback": "Native HLS via video.canPlayType('application/vnd.apple.mpegurl') for iOS Safari",
+    "dplayer_options": {
+      "autoplay": false,
+      "theme": "#FADFA3 (cream yellow)",
+      "loop": true,
+      "lang": "zh-tw (Traditional Chinese)",
+      "screenshot": false,
+      "hotkey": true
+    },
+    "destructor": "i.value.destroy() on component unmount"
   },
-  "category_count": 5,
-  "top_level_categories": [
-    {"classid": 1, "name": "国产", "path": "video", "tbname": "movie", "sub_count": 16},
-    {"classid": 28, "name": "女优", "path": "av", "tbname": "movie", "sub_count": 53},
-    {"classid": 37, "name": "电影", "path": "movie", "tbname": "movie", "sub_count": 10},
-    {"classid": 2, "name": "图文", "path": "pic", "tbname": "news", "sub_count": 8},
-    {"classid": 3, "name": "小说", "path": "book", "tbname": "news", "sub_count": 5}
+  "video_page_url_resolution_strategy": {
+    "description": "The m3u8 path in the JSON (e.g. /videos/202605/abc/hls/index.m3u8) is RELATIVE - the actual URL is constructed by the page component at runtime by prepending a random CDN hostname based on breadcrumb type",
+    "cdn_pools": {
+      "self_upload (国产)": "n = ['https://publices.ttjkbx.com', 'https://publices.ttjkbx.com'] (2 nodes, pick 3 with repetition)",
+      "actor (女优)": "n = ['https://m3u8.73cdn.com', 'https://m3u8.74cdn.com'] (2 nodes, pick 3 with repetition)",
+      "movie (电影)": "n = ['https://m3u8.41cdn.com', 'https://m3u8.44cdn.com', 'https://m3u8.46cdn.com', 'https://m3u8.47cdn.com', 'https://m3u8.48cdn.com', 'https://m3u8.34cdn.com'] (6 nodes, pick 3 random)"
+    },
+    "selection_algorithm": "n.sort(()=>0.5-Math.random()).slice(0,3) - shuffle + take first 3 (with repetition when n has fewer items)",
+    "url_construction": "${cdn_hostname}${b.m3u8}",
+    "line_switching": "User can click '线路' buttons to switch via DPlayer.switchVideo() with new m3u8 URL"
+  },
+  "m3u8_actual_structure": {
+    "version": "EXT-X-VERSION:3",
+    "type": "VOD",
+    "target_duration": "4 seconds",
+    "encryption": "NONE (no EXT-X-KEY tag)",
+    "segments": "370 segments of 4 seconds each (last segment 2.44s)",
+    "total_duration": "1478.44 seconds (24.6 minutes) - example: video 148265",
+    "segment_size": "~500KB per .ts file",
+    "content_type": "video/mp2t",
+    "cache": "max-age=2592000 (30 days)",
+    "cors": "Access-Control-Allow-Origin: *",
+    "range_support": "Accept-Ranges: bytes",
+    "cdn_servers": ["openresty (default)", "Tengine (publices.ttjkbx.com)"]
+  },
+  "mp4_structure": {
+    "url_pattern": "https://d1.xia12345.com/video/{YYYYMM}/{id-hash}/720.mp4 or /hd.mp4",
+    "content_type": "video/mp4",
+    "content_disposition": "attachment; filename=\"4HU.TV_720.mp4\" (BRAND REVEALED IN FILENAME)",
+    "accept_ranges": "bytes",
+    "etag_format": "openresty: \"{hex-size}-{hex-size}\"",
+    "cache": "no-cache headers (varies)",
+    "size_example": "205MB for 24-min 720p (video 148265)",
+    "no_drm": "Plain progressive MP4, downloadable with curl/wget"
+  },
+  "complete_route_table_11_routes": [
+    {"name": "home", "path": "/home", "import": "./q7Mtru22_4N80wRF.js", "purpose": "Home page with video grid"},
+    {"name": "video-avkey", "path": "/video/:avkey()", "import": "./0An_9x4TMtKUORU7.js", "purpose": "Single video player page (DPlayer host)"},
+    {"name": "view-id", "path": "/view/:id()", "import": "./D1A0qoaROVeeGy06.js", "purpose": "Image gallery (图文) detail page"},
+    {"name": "series-series", "path": "/series/:series()", "import": "./R41WAjHvjIIju23k.js", "purpose": "Actor/series index (女优 list)"},
+    {"name": "series-list", "path": "/series/lists/:id", "purpose": "Series list page (NOT in route table, only navigated to dynamically from series page)"},
+    {"name": "category-category", "path": "/category/:category(.*)*", "purpose": "Category listing (movie / photo / novel)"},
+    {"name": "category-list", "path": "/category-list", "import": "./3KEh9pCNhk8tIjr5.js", "purpose": "Category navigation page"},
+    {"name": "top", "path": "/top", "import": "./EYmpftLDHYR8o8hk.js", "purpose": "Default top rankings (combined day/week/month)"},
+    {"name": "top-type", "path": "/top/:type()", "import": "./EYmpftLDHYR8o8hk.js", "purpose": "Top by type (Day|Week|Moon or 1|2|3)"},
+    {"name": "search", "path": "/search", "import": "./WiYFok4aHaHQu82s.js", "purpose": "Search results (keyword is AES-encrypted)"},
+    {"name": "help", "path": "/help", "import": "./gW_P5hWhnTKRMD7I.js", "purpose": "Help list"},
+    {"name": "help-id", "path": "/help/:id()", "import": "./gW_P5hWhnTKRMD7I.js", "purpose": "Help article (3324=侵权删除, 3326=下载教程)"},
+    {"name": "test-all", "path": "/test/:all(.*)*", "import": "./tzuBfqUdj0PqTLvt.js", "purpose": "Catch-all test route (likely a Nuxt dev artifact)"}
   ],
-  "photo_novel_categories": {
-    "parent": {"id": 2, "name": "图文", "path": "pic", "tbname": "news"},
-    "subs": [
-      {"id": 10, "name": "自拍偷拍", "path": "pic/toupai", "listtempid": 10, "items_total": "huge"},
-      {"id": 11, "name": "美腿丝袜", "path": "pic/meitui", "listtempid": 10, "items_total": "huge"},
-      {"id": 13, "name": "欧美色图", "path": "pic/oumei", "listtempid": 10, "items_total": "huge"},
-      {"id": 14, "name": "卡通图片", "path": "pic/katong", "listtempid": 10, "items_total": "huge"},
-      {"id": 16, "name": "都市小说", "path": "pic/dushi", "listtempid": 11, "items_total": "huge"},
-      {"id": 17, "name": "乱伦小说", "path": "pic/luanlun", "listtempid": 11, "items_total": "huge"},
-      {"id": 18, "name": "校园小说", "path": "pic/xiaoyuan", "listtempid": 11, "items_total": "huge"},
-      {"id": 20, "name": "人妻小说", "path": "pic/renqi", "listtempid": 11, "items_total": "huge"}
-    ],
-    "url_access": [
-      "/category/2 (list all 图文)",
-      "/category/2/photo (legacy alias)",
-      "/category/10/photo (自拍偷拍 list)",
-      "/category/16/novel (都市小说 list)",
-      "/view/{news_id} (single post detail - image gallery or novel chapter)"
-    ],
-    "example_post": {
-      "id": 100709,
-      "title": "可爱的少女玛丽 莱恩展示她毛茸茸的阴部并玩弄它[26P]",
-      "classid": 13,
-      "category_name": "欧美色图",
-      "category_type": "news",
-      "category_tempid": 10,
-      "content_format": "HTML with <img> tags (26 inline images, all hosted on img.997pp.com)",
-      "has_comments": false
+  "all_api_endpoints": {
+    "static_json_files": {
+      "config": "https://portal.instruno.com/public2/json/a.json (full config blob, all ad slots)",
+      "latest_videos": "https://portal.instruno.com/public2/json/latest.json (latest: 20, latest2: 20, movie: 20)",
+      "top_day": "https://portal.instruno.com/public2/json/top/top-Day.json",
+      "top_week": "https://portal.instruno.com/public2/json/top/top-Week.json",
+      "top_moon": "https://portal.instruno.com/public2/json/top/top-Moon.json",
+      "top_default": "https://portal.instruno.com/public2/json/top/top.json (empty/error 150 bytes)",
+      "top_tags": "https://portal.instruno.com/public2/json/top-tags.json (Chinese keyword list)",
+      "category_list": "https://portal.instruno.com/public2/json/category-list.json (full category tree)",
+      "category_paginated": "https://portal.instruno.com/public2/json/category/{classid}-{page}.json (24/page)",
+      "news_detail": "https://portal.instruno.com/public2/json/view/{news_id}.json (image gallery, no comments)",
+      "video_detail": "https://portal.instruno.com/public2/json/video/{video_id}.json (mp4/m3u8/yulan + maybe 10 related)",
+      "help_list": "https://portal.instruno.com/public2/json/help/list.json",
+      "help_article": "https://portal.instruno.com/public2/json/help/{id}.json (e.g. 3324, 3326)",
+      "series_paginated": "https://portal.instruno.com/public2/json/series/{seriesId}-{page}.json"
+    },
+    "dynamic_api_relative": {
+      "top": "GET /api/v3/top?type=N (0=combined, 1=Day, 2=Week, 3=Moon)",
+      "getAd": "GET /api/v2/getAd",
+      "series": "GET /api/v2/series?series={id}&page={N}",
+      "search": "GET /api/v2/search?keyword={base64url-encrypted}&classid={cid}&page={N}",
+      "help": "GET /api/v2/help (returns list)",
+      "help_id": "GET /api/v2/help/{id}",
+      "topTags": "GET /api/v2/topTags",
+      "onclick": "GET /api/onclick/?enews=donews&classid={cid}&id={avkey} (view counter, called on video page load)"
     }
   },
-  "click_handler_logic": "From WiYFok4aHaHQu82s.js: tbname='movie'->/video/{id}; tbname='news'->/view/{id}; listtempid=16 && m3u8=0 -> /series/view/{id}; window.open() in _blank"
+  "encrypted_ui_strings_in_video_page": {
+    "decrypted_keys": {
+      "view": "观看数",
+      "tags": "标籤 (Traditional Chinese)",
+      "maybe": "猜你喜欢",
+      "mc": "名称",
+      "kl": "功能",
+      "sj": "时间",
+      "fl": "分类",
+      "ts": "提醒",
+      "bc": "标签",
+      "t1": "(点击复制)分享给好友！",
+      "t2": "谨防视频内的博彩交友广告（APP），以免造成财产损失，并非来自本站",
+      "t3": "播放失败，缓慢，请点击下方线路进行切换",
+      "t4": "线路",
+      "t5": "下载方式",
+      "t6": "下载教程",
+      "t7": "HTTP下载",
+      "t8": "复制链接",
+      "t9": "侵权删除",
+      "t10": "本站二维码",
+      "t11": "TG看片频道",
+      "next": "下一视频 »",
+      "prev": "« 上一视频",
+      "back": "返回列表"
+    },
+    "purpose": "All UI labels are AES-encrypted in source to impede keyword-based scraping of compiled JS"
+  },
+  "click_handler_dispatch_logic": {
+    "in_WiYFok4aHaHQu82s.js": "F = n => { n.tbname==='movie' ? /video/{n.id} : n.tbname==='news' ? /view/{n.id} : n.listtempid===16 && n.m3u8===0 ? /series/view/{n.id} : null; window.open(url, '_blank') }",
+    "in_R41WAjHvjIIju23k.js": "V = (a, s) => { s===16 ? /series/lists/{a} : /category/{a} }"
+  },
+  "anti_piracy_assessment": {
+    "DRM": "NONE - videos are plain MP4 (H.264/AAC) and plain HLS segments",
+    "watermarks": "NONE detected in m3u8 segments or mp4 streams (could be visible watermark overlay on player UI, not in stream)",
+    "referer_check": "NONE - CDN allows direct curl/wget download of all segments and mp4 files",
+    "user_agent_check": "NONE - no UA validation",
+    "geofencing": "NONE detected at CDN level (all 8 CDN nodes return same content)",
+    "rate_limiting": "Possibly at Cloudflare level for the origin only; CDN video files have no rate limits",
+    "session_cookies": "NONE required for video playback - only the age gate requires browser interaction"
+  },
+  "contact_info_discovered": {
+    "infringement_email": "LianXiWo852@gmail.com (from /help/3324)",
+    "alternative_origin": "4hu.tv (4HU.TV brand)",
+    "telegram_channel": "linked from t11='TG看片频道' UI label"
+  }
 }
