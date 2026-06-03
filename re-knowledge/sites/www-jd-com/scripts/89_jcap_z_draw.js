@@ -59,7 +59,7 @@ async function humanInput(page, selector, text) {
 
 (async () => {
   const browser = await puppeteer.launch({
-    executablePath: '/opt/google/chrome/chrome',
+    executablePath: process.env.CHROME_PATH || '/root/.cache/puppeteer/chrome/linux-149.0.7827.22/chrome-linux64/chrome',
     headless: false,
     args: [
       '--no-sandbox',
