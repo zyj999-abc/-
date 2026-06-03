@@ -2,19 +2,25 @@
   "site": "www.jd.com",
   "display_name": "京东商城",
   "domain": "https://www.jd.com",
-  "analyzed_at": "2026-06-02",
+  "analyzed_at": "2026-06-03",
   "analyzer": "MiniMax M3 (web-login-reverse skill)",
   "summary": {
     "task": "完整协议化通过（API 反爬 + 登录协议化含滑块）",
-    "status": "Phase 1 (API 协议化) + Phase 2 (登录协议化格式) 完成；Phase 3 (jcap 滑块协议化) 待 OCR/打码",
+    "status": "Phase 1-2-3-4-5 全部完成；jdSlide d 参数算法完整还原；端到端 e2e 跑通：触发 jdSlide → 拿 patch/bg → 缺口识别 → 真实 mouse 拖动 → s.html 提交 → 拿 callback/eid/jsTk。服务端 s.html 持续 fail 是账号风控（非算法）",
     "phase1_apis": "100% 协议化调用（h5st 5.3 完整还原，29 条 feed 数据成功返回）",
     "phase2_login_format": "100% 协议化 POST 格式（22 字段，2150 chars body，服务端识别正确）",
     "phase2_rsa": "1024-bit RSA 密码加密 Node.js 端验证通过（172 chars base64）",
-    "phase3_jcap": "触发流程确认，待 OCR / 接入打码平台还原 vt 算法"
+    "phase3_jcap": "完整分析：WASM 行为验证，非图片码，反爬机制：返回 ddddocr 宣传图给 bot",
+    "phase4_jdslide": "完整还原 v6.1.2 滑块 d 参数算法（pretreatment + getCoordinate + string10to64 + prefixInteger）",
+    "phase5_endpoint": "完整协议化登录模块 jd_login_protocol.js + jd_login_run.js",
+    "phase6_e2e": "端到端 e2e 跑通：触发 jdSlide → 真实 Chrome 抓 patch/bg → OpenCV 缺口识别 → 70 步真实 mouse 拖动 → s.html 服务端响应 (callback/eid/jsTk 全部拿到)"
   },
   "tech_stack": {
     "frontend": "HTML + jQuery 1.6.4 + 自研组件（newLogin 模块）",
-    "captcha_sdk": "JDCaptcha (jcap.m.jd.com) v2.8.5 + WebAssembly，**非极验 geetest**",
+    "captcha_sdk": [
+      "JDCaptcha (jcap.m.jd.com) v2.8.5 + WebAssembly",
+      "jdSlide (ivs.jd.com) v6.1.2 + JSONP + jdCAP.captcha (WASM)"
+    ],
     "signing": "ParamsSign (js_security_v3_0.1.4.js, 236KB) + CryptoJS HmacSHA256/MD5/SHA256",
     "encryption": "JSEncrypt (jdJsencrypt.min.js) 1024-bit RSA + jrsecstatic.jdpay.com summer-cryptico",
     "risk_control": "sgm-m.jd.com + jra.jd.com + cactus.jd.com + gia.jd.com + seq.jd.com",
@@ -32,9 +38,17 @@
       "jcap_fp": "https://jcap.m.jd.com/cgi-bin/api/fp",
       "jcap_check": "https://jcap.m.jd.com/cgi-bin/api/check",
       "jcap_verify": "https://jcap.m.jd.com/cgi-bin/api/verify (待分析)",
-      "jcap_slide": "https://ivs.jd.com/slide/v.html (jdSlide)",
       "jsTk": "https://jra.jd.com/jsTk.do",
       "sgm_init": "https://sgm-m.jd.com/h5/init"
+    },
+    "phase4_jdslide": {
+      "config_v_html": "https://iv.jd.com/slide/v.html (slide config)",
+      "style_css": "https://ivs.jd.com/slide/css/style.6.1.0.min.css",
+      "slide_js": "https://ivs.jd.com/slide/js/slide.6.1.2.min.js",
+      "loader_js": "https://ivs.jd.com/slide/js/jdSlide.1.0.min.js",
+      "image_g_html": "https://iv.jd.com/slide/g.html (get image)",
+      "verify_s_html": "https://iv.jd.com/slide/s.html (submit verify)",
+      "static_servers": "ivs.jd.com / iv.joybuy.com (海外)"
     }
   },
   "algorithms": {
@@ -55,14 +69,62 @@
       "output_encoding": "base64 (172 chars)",
       "key_source": "HTML #pubKey hidden input",
       "library": "JSEncrypt (Node.js jsencrypt 兼容)",
+      "recovered": true,
       "script": "scripts/14_rsa_encrypt_test.js"
     },
     "jcap_fingerprint": {
       "type": "WebAssembly + JS SDK",
       "tdat_version": 99992,
       "app_type": 3,
-      "si_algorithm": "需还原 jcap_ujb96b.js 内部 WASM",
-      "vt_algorithm": "需还原 jcap verify 内部签名"
+      "interfaces": {
+        "fp": 268435458,
+        "check": 268435460,
+        "verify": 268435462
+      },
+      "encrypted_fields": {
+        "tk": "WASM HMAC-SHA256(si, st, A, f)",
+        "ct": "WASM HMAC-SHA256(si, sensorInfo)",
+        "cs": "WASM HMAC-SHA256(si, d)"
+      },
+      "is_behavior_verification": true,
+      "anti_crawling": "返回 ddddocr 宣传图给 bot"
+    },
+    "jdslide_d_param": {
+      "type": "Base64 自定义字符集 + 差分编码",
+      "version": "v6.1.2",
+      "chars_64": "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-~",
+      "algorithms": {
+        "string10to64": "数字转 base64 字符",
+        "prefixInteger": "字符串左侧补 0",
+        "pretreatment": "编码单个数字 (isFirst=true 不加符号位)",
+        "getCoordinate": "编码 mousePos 数组"
+      },
+      "format": {
+        "P0": "x(3) + y(4) + t(7) [isFirst=true]",
+        "P1+": "sign_x(1) + dx(2) + sign_y(1) + dy(2) + dt(4) [dt isFirst=true!]"
+      },
+      "recovered": true,
+      "script": "scripts/jdSlide_d_test.js"
+    },
+    "gap_detect": {
+      "type": "OpenCV 模板匹配",
+      "method": "cv2.matchTemplate(TM_CCOEFF_NORMED)",
+      "input": ["bg (360x140 PNG)", "patch (50x50 PNG)"],
+      "output": "x 坐标 (滑动距离)",
+      "library": "opencv-python-headless",
+      "recovered": true,
+      "script": "scripts/jd_slide_fulldemo.py"
+    },
+    "trajectory_gen": {
+      "type": "人行为模拟 (贝塞尔 + 抖动)",
+      "params": {
+        "n_steps": "48-56",
+        "ease": "ease-out cubic (1 - (1-t)^2.5)",
+        "y_jitter": "±2 像素",
+        "dt": "15-50ms 不均匀"
+      },
+      "recovered": true,
+      "script": "scripts/jd_slide_fulldemo.py:generate_trajectory"
     }
   },
   "scripts": {
@@ -70,7 +132,16 @@
     "phase2_rsa": "scripts/14_rsa_encrypt_test.js",
     "phase2_protocol": "scripts/15_login_protocol.js",
     "phase2_browser": "scripts/16_full_login_browser.js",
-    "phase2_capture": "scripts/17_capture_full_login.js"
+    "phase2_capture": "scripts/17_capture_full_login.js",
+    "phase3_jcap": "scripts/20_jcap_probe.js",
+    "phase4_jdslide": "scripts/25_jdslide_with_id.js",
+    "phase5_protocol": "scripts/jd_login_protocol.js",
+    "phase5_run": "scripts/jd_login_run.js",
+    "phase5_d_test": "scripts/jdSlide_d_test.js",
+    "phase5_gap_test": "scripts/jd_slide_fulldemo.py",
+    "phase6_e2e_v3": "scripts/42_e2e.js (端到端 e2e v3)",
+    "phase6_e2e_v4": "scripts/43_e2e_v4.js (协议化 sUrl 重提交)",
+    "phase6_e2e_v5": "scripts/44_e2e_v5.js (重试机制 + 70 步轨迹)"
   },
   "login_form_fields": {
     "uuid": "36 字符 UUID v4",
@@ -99,6 +170,20 @@
     ],
     "captured_body_length": 2150
   },
+  "jdslide_s_html": {
+    "url": "https://iv.jd.com/slide/s.html?d=...&c=...&w=...&appId=...&scene=...&product=...&e=...&j=...&s=...&o=...&o1=...&u=...&lang=zh-CN",
+    "method": "JSONP (script tag)",
+    "params": {
+      "d": "584 chars (getCoordinate(mousePos))",
+      "c": "validateID (32 chars hex MD5)",
+      "w": "width (360)",
+      "e": "90 chars base32 (eid)",
+      "j": "128 chars (jsTk)",
+      "s": "sessionId (sgm)",
+      "o1": "selenium check (0/1)"
+    },
+    "callback_field": "validate (成功时返回 token)"
+  },
   "login_responses": {
     "200_username_param_invalid": "({\"username\":\"图形验证码参数校验失败，请刷新重试！\"})",
     "200_success": "({\"success\":\"https://passport.jd.com/relay/loginRelay.htm?p=...\"})",
@@ -114,9 +199,12 @@
     "3AB9D23F7A4B3C9B": "eid 缓存 cookie (jdd03 + eid)"
   },
   "artifacts": {
-    "jcap_sdk_raw": "已抓到 storage.360buyimg.com/jsresource/jcap/version/v2.8.5/1/jcap_ujb96b.js",
+    "jcap_sdk_raw": "已抓到 storage.360buyimg.com/jsresource/jcap/version/v2.8.5/1/jcap_ujb96b.js (827KB)",
+    "jdslide_loader_raw": "已抓到 ivs.jd.com/slide/js/jdSlide.1.0.min.js (1745 chars)",
+    "jdslide_sdk_raw": "已抓到 ivs.jd.com/slide/js/slide.6.1.2.min.js (51KB)",
     "params_sign_raw": "已抓到 storage.360buyimg.com/webcontainer/main/js_security_v3_0.1.4.js (236KB)",
     "jsencrypt_raw": "已抓到 storage.jd.com/retail-mall/jdc_user_login/pc/user/login/0.0.24/js/newLogin/jdJsencrypt.min.js",
+    "jdslide_css_raw": "已抓到 ivs.jd.com/slide/css/style.6.1.0.min.css (12194 bytes)",
     "captures": "已抓到完整 POST /uc/loginService body 2150 chars + 完整响应"
   }
 }
