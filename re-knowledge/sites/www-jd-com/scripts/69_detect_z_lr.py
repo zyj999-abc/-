@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-68_detect_z_bfs.py
+69_detect_z_lr.py
 
-检测 jcap Z 形轨迹，用 BFS 沿曲线从一端走到另一端。
+检测 jcap Z 形轨迹，用 BFS 但只允许向右走，生成从左到右的连续路径。
 """
 import sys
 import json
@@ -11,7 +11,7 @@ import numpy as np
 from collections import deque
 
 
-def find_z_curve_bfs(img_path):
+def find_z_curve_lr(img_path):
     img = cv2.imread(img_path, cv2.IMREAD_COLOR)
     if img is None:
         return {'error': f'cannot read {img_path}'}
@@ -41,39 +41,42 @@ def find_z_curve_bfs(img_path):
 
     # 找最左点
     ys, xs = np.where(curve_mask > 0)
-    left_x = xs.min()
+    left_x = int(xs.min())
     left_y = int(ys[xs == left_x].mean())
 
     # 找最右点
-    right_x = xs.max()
+    right_x = int(xs.max())
     right_y = int(ys[xs == right_x].mean())
 
-    # BFS 从最左点开始
-    visited = np.zeros_like(curve_mask, dtype=bool)
-    queue = deque([(left_y, left_x)])
-    visited[left_y, left_x] = True
-    path = [(left_x, left_y)]
+    # 用 BFS 但只允许向右走（右优先）
+    # 实际上更简单：直接按 x 排序，然后去重
+    # 关键：每列只取 y 值，离前一个点的 y 最近的那个 y
 
-    while queue:
-        cy, cx = queue.popleft()
-        # 8 邻域
-        for dy in [-1, 0, 1]:
-            for dx in [-1, 0, 1]:
-                if dy == 0 and dx == 0:
-                    continue
-                ny, nx = cy + dy, cx + dx
-                if 0 <= ny < h and 0 <= nx < w and curve_mask[ny, nx] > 0 and not visited[ny, nx]:
-                    visited[ny, nx] = True
-                    queue.append((ny, nx))
-                    path.append((nx, ny))
+    sorted_points = sorted([(int(x), int(y)) for y, x in zip(ys, xs)], key=lambda p: p[0])
 
-    # path 是 BFS 顺序（不是从一端到另一端的最短路径）
-    # 但我们可以用一个简单方法：从最左点开始，每次往右走
-    # 实际：BFS 顺序是从最左点扩散开来的，要重排
+    # 简化：保留唯一的 x（每列一个 y）
+    col_y = {}
+    for x, y in sorted_points:
+        if x not in col_y:
+            col_y[x] = []
+        col_y[x].append(y)
 
-    # 改用：从最左点开始，每次跳到未访问的最近点
-    # 简化：只保留按 x 排序后的 path
-    path.sort(key=lambda p: p[0])
+    # 为每列选一个 y（用与上一列 y 最近的）
+    cols = sorted(col_y.keys())
+    if not cols:
+        return {'error': 'no columns'}
+
+    path = []
+    prev_y = (col_y[cols[0]][0] + col_y[cols[0]][-1]) // 2 if len(col_y[cols[0]]) > 1 else col_y[cols[0]][0]
+    for x in cols:
+        ys_col = col_y[x]
+        if len(ys_col) == 1:
+            y = ys_col[0]
+        else:
+            # 选离 prev_y 最近的
+            y = min(ys_col, key=lambda yy: abs(yy - prev_y))
+        path.append((x, y))
+        prev_y = y
 
     # 等间距采样
     target_count = 50
@@ -82,20 +85,22 @@ def find_z_curve_bfs(img_path):
         path = [path[i] for i in idx]
 
     print(f'final points: {len(path)}', file=sys.stderr)
+    print(f'first 10: {path[:10]}', file=sys.stderr)
+    print(f'last 5: {path[-5:]}', file=sys.stderr)
 
     return {
         'color': 'dark',
         'width': int(w),
         'height': int(h),
-        'start': [int(left_x), int(left_y)],
-        'end': [int(right_x), int(right_y)],
+        'start': [left_x, left_y],
+        'end': [right_x, right_y],
         'points': [{'x': int(x), 'y': int(y)} for x, y in path],
     }
 
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
-        print('usage: detect_z_bfs.py <image_path>', file=sys.stderr)
+        print('usage: detect_z_lr.py <image_path>', file=sys.stderr)
         sys.exit(1)
-    result = find_z_curve_bfs(sys.argv[1])
+    result = find_z_curve_lr(sys.argv[1])
     print(json.dumps(result, ensure_ascii=False))
