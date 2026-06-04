@@ -3,6 +3,7 @@
     "crypto-js": "^4.2.0",
     "jsencrypt": "^3.5.4",
     "patchright": "^1.60.1",
+    "puppeteer": "^25.1.0",
     "puppeteer-core": "^21.6.0",
     "sm-crypto": "^0.4.0"
   }
