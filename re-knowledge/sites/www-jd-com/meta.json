@@ -11,6 +11,7 @@
     "phase2_login_format": "100% 协议化 POST 格式（22 字段，2150 chars body，服务端识别正确）",
     "phase2_rsa": "1024-bit RSA 密码加密 Node.js 端验证通过（172 chars base64）",
     "phase3_jcap": "完整分析：WASM 行为验证，非图片码，反爬机制：返回 ddddocr 宣传图给 bot",
+    "phase3_jcap_v2": "v2.8.5 协议化还原：WASM 27 个 exports + JS 11 个 w 方法 (getTKData/getCTData/getCSData/parse 等) + 4 端点流程 (fp→check_get→drag→check_verify→refresh) + 完整字段 si/st/vt/se 还原 + 滑动轨迹 ml 难题（16807 服务端 ML 验证）",
     "phase4_jdslide": "完整还原 v6.1.2 滑块 d 参数算法（pretreatment + getCoordinate + string10to64 + prefixInteger）",
     "phase5_endpoint": "完整协议化登录模块 jd_login_protocol.js + jd_login_run.js",
     "phase6_e2e": "端到端 e2e 跑通：触发 jdSlide → 真实 Chrome 抓 patch/bg → OpenCV 缺口识别 → 70 步真实 mouse 拖动 → s.html 服务端响应 (callback/eid/jsTk 全部拿到)"
@@ -76,6 +77,8 @@
       "type": "WebAssembly + JS SDK",
       "tdat_version": 99992,
       "app_type": 3,
+      "version": "v2.8.5",
+      "sdk_url": "storage.360buyimg.com/jsresource/jcap/version/v2.8.5/1/jcap_ujb96b.js",
       "interfaces": {
         "fp": 268435458,
         "check": 268435460,
@@ -87,7 +90,36 @@
         "cs": "WASM HMAC-SHA256(si, d)"
       },
       "is_behavior_verification": true,
-      "anti_crawling": "返回 ddddocr 宣传图给 bot"
+      "anti_crawling": "返回 ddddocr 宣传图给 bot",
+      "w_methods": [
+        "getXcr", "getPoW", "getTKData", "getCTData", "getSEData",
+        "getCSData", "parse", "getInitialState", "transform", "getInstanceId", "setEvent"
+      ],
+      "wasm_exports": [
+        "memory", "envelope_algorithm", "envelope_kek_id", "envelope_encrypted_key",
+        "envelope_ciphertext", "envelope_nonce", "envelope_new", "envelope_to_json",
+        "envelope_from_json",
+        "datacollectorbuilder_new", "datacollectorbuilder_with_fingerprints",
+        "datacollectorbuilder_with_custom_dat_field", "datacollectorbuilder_collect",
+        "datacollectorbuilder_collect_to_json", "datacollectorbuilder_collect_and_encrypt",
+        "datacollectorbuilder_collect_compress_and_encrypt",
+        "init", "deserialize_envelope_from_json", "serialize_envelope_to_json",
+        "create_data_collector"
+      ],
+      "endpoint_flow": {
+        "step1_fp": "POST /cgi-bin/api/fp -> st + fp + tp=9 (fingerprint collection)",
+        "step2_check_get_img": "POST /cgi-bin/api/check (si + lang + tk + ct + cs) -> st + tp=3 (puzzle) + img JSON{b1: base64}",
+        "step3_user_drag": "User draws diagonal line on cpc_img (290x179) from bottom-left to top-right",
+        "step4_check_verify": "POST /cgi-bin/api/check (si + lang + tk + ct + cs) -> code 0/16807",
+        "step5_refresh": "POST /cgi-bin/api/refresh (si + version + se + lang + client + type) -> new st + new img"
+      },
+      "errors": {
+        "0": "success (returns vt)",
+        "16807": "captcha failed (trajectory rejected by ML)",
+        "16808": "sessionid expired",
+        "16809": "verify_token expired"
+      },
+      "v2_protocol_status": "FULLY RECOVERED: fp + check + refresh endpoints + field format + si/st/vt/se full flow. BLOCKED at server-side ML detection 16807: even with 100 steps + 5.5 seconds + pixel-level jitter slow drag still 16807 (jcap server uses ML to verify trajectory authenticity)"
     },
     "jdslide_d_param": {
       "type": "Base64 自定义字符集 + 差分编码",

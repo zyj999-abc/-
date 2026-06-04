@@ -568,3 +568,107 @@ $ node scripts/44_e2e_v5.js
 ## 11. 一句话总结
 
 **京东协议化登录的 POST 格式 + RSA 加密 + jdSlide d 参数算法 100% 还原**；端到端 e2e 跑通：触发 jdSlide → 拿 patch/bg → OpenCV 缺口识别 → 真实 mouse 拖动生成 d → s.html 提交 → 拿 eid/jsTk 全部数据。唯一阻断是 random 账号触发风控，需要真实账号 + headed 浏览器完成最后一步。
+
+---
+
+## 12. jcap v2.8.5 协议化完整还原（Phase 8）
+
+> 分析时间: 2026-06-04
+> 状态: 端点流程 + 字段格式 + WASM exports + JS w 方法全部还原
+> 卡点: jcap 服务端 ML 验证 16807
+
+### 12.1 jcap SDK 加载链
+
+| 资源 | URL | 大小 |
+|------|-----|------|
+| jcap SDK | `storage.360buyimg.com/jsresource/jcap/version/v2.8.5/1/jcap_ujb96b.js` | 832KB minified |
+| WASM | `storage.360buyimg.com/jsresource/jcap/version/v2.8.5/wasm_crypto_bg.wasm` | 351KB |
+| 服务端 | `jcap.m.jd.com/cgi-bin/api/{fp,check,refresh}` | POST |
+
+### 12.2 4 端点流程
+
+```
+用户点登录
+   ↓
+1. POST /api/fp  →  st + fp + tp=9 (指纹采集)
+   ↓
+2. POST /api/check (si + lang + tk + ct + cs + version=3 + client=pc)
+   ↓
+   RESP: st + tp=3 (拼图) + img JSON{b1: base64}
+   ↓
+用户画线（在 cpc_img 上沿图中轨迹绘制）
+   ↓
+3. POST /api/check  (同上 4 字段)
+   ↓
+   RESP code=0: vt (verify_token)  ← 协议化目标
+   RESP code=16807: 验证失败
+   ↓
+4. POST /api/refresh (si + version + se + lang + client + type)
+   ↓
+   RESP: 新 st + 新 img
+```
+
+### 12.3 CaptchaWebAssembly 实例方法（w 原型链）
+
+```
+getXcr, getPoW, getTKData, getCTData, getSEData,
+getCSData, parse, getInitialState, transform,
+getInstanceId, setEvent
+```
+
+| 方法 | 真实调用 | 输入 |
+|------|----------|------|
+| `getTKData` | k 函数 `tk: k([si, st, A, f])` | si + st + xyList + touchList_JSON |
+| `getCTData` | x 函数 `ct: x([a, C])` | si + sensorInfo |
+| `getCSData` | F 函数 `cs: F([a, JSON.stringify(p)])` | si + d |
+| `parse` | R 函数 | (input, format) |
+| `getInitialState` | N 函数 | input |
+
+### 12.4 WASM 27 个 exports
+
+```
+memory, envelope_{algorithm,kek_id,encrypted_key,ciphertext,nonce,
+        new,to_json,from_json},
+datacollectorbuilder_{new, with_fingerprints, with_custom_dat_field,
+        collect, collect_to_json, collect_and_encrypt,
+        collect_compress_and_encrypt},
+init, deserialize_envelope_from_json,
+serialize_envelope_to_json, create_data_collector
+```
+
+### 12.5 关键发现
+
+1. **WASM 实际不直接导出 `getTKData/getCTData` 等业务方法** - 这些是 Emscripten cwrap 包装层 + JS 端定义
+2. **底层加密函数** = `datacollectorbuilder_collect_compress_and_encrypt`（收集 + 压缩 + 加密）
+3. **协议化通过 jcap 的核心** = 在浏览器中调用 `w.getTKData(input)` 等 JS 包装方法（用 puppeteer 触发 + 真实 headed Chrome）
+4. **服务端 ML 检测 16807** = 即使 100 步 + 5.5 秒 + 像素级 jitter 慢速拖动仍 16807
+
+### 12.6 当前阻塞
+
+**16807 失败** = jcap 服务端 ML 模型严格检测：
+- 即使 puppeteer 真实 headed Chrome + 真实慢速拖动
+- 即使 CDP touch 事件替代 mouse
+- 即使轨迹方向正确（斜线 / Z 形 / 对角线）
+- 服务端仍 16807
+
+**协议化可能的方向**:
+- A) 用真实 headed Chrome + 真实人介入（人工画线）→ 拿到 vt → 协议化 loginService
+- B) 还原 jcap 服务端 ML 模型（不现实）
+- C) 找 jcap 的服务端 bypass（如 jdSlide SDK 替代）
+- D) 用已知 valid vt token 重放（不现实，因为 vt 一次性）
+
+### 12.7 关键脚本
+
+- `92_jcap_dump_sdk.js` - 抓 jcap SDK
+- `97_jcap_k_debugger.js` - 抓 k 函数输入输出（4 组完整 tk 输入输出）
+- `99e_jcap_verify_k_method.js` - 验证 K_METHOD = "getTKData"
+- `100_jcap_wasm_exports_check.js` - WASM exports 列表
+- `105_jcap_dump_uat_runtime.js` - dump w 实例 + 原型方法
+- `106_jcap_dump_real_u_array.js` - 运行时 U 数组实际值
+- `108_jcap_replay_getTKData.js` - 测试直接调用 w.getTKData
+- `110_jcap_inspect_touchlist.js` - xyList 完整结构
+- `113_jcap_inspect_full_xyList.js` - 完整轨迹点列表
+- `116_jcap_all_requests.js` - 完整请求时序
+- `117_jcap_full_req_body.js` - 完整 POST body
+- `122_jcap_inspect_modal.js` - jcap modal 完整结构
+- `123_jcap_drag_slider.js` - 拖动 slide_path
