@@ -12,6 +12,8 @@
   "type": "commonjs",
   "dependencies": {
     "jsencrypt": "^3.5.4",
-    "puppeteer-core": "^25.1.0"
+    "puppeteer-core": "^25.1.0",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2"
   }
 }

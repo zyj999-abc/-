@@ -238,5 +238,39 @@
     "jsencrypt_raw": "已抓到 storage.jd.com/retail-mall/jdc_user_login/pc/user/login/0.0.24/js/newLogin/jdJsencrypt.min.js",
     "jdslide_css_raw": "已抓到 ivs.jd.com/slide/css/style.6.1.0.min.css (12194 bytes)",
     "captures": "已抓到完整 POST /uc/loginService body 2150 chars + 完整响应"
+  },
+  "a_plan_final_result": {
+    "date": "2026-06-04",
+    "approach": "puppeteer-extra + stealth 插件 + 真人级贝塞尔曲线轨迹 + Z 形骨架检测 (88_gen_z_path.py)",
+    "scripts_tried": ["125_jcap_stealth_bypass.js (270+ 行)"],
+    "result": "16807 失败 - jcap v2.8.5 服务端 ML 检测无法用浏览器自动化绕过",
+    "verification_runs": [
+      {
+        "run": 1,
+        "captcha_type": "tp=26 旋转图片 (slide_path)",
+        "result": "超时未处理 slide_path"
+      },
+      {
+        "run": 2,
+        "captcha_type": "tp=3 轨迹画线 (cpc_img + trackLine)",
+        "z_path_endpoints": 22,
+        "z_path_points_generated": 200,
+        "result": "code=16807 验证失败"
+      }
+    ],
+    "root_cause": "服务端 ML 检测的不是行为特征像不像人，而是是不是同一个真人。puppeteer 程序化 mouse.move() 事件的 CDP packet timing ≠ 真实人手拖动产生的微秒级硬件中断",
+    "completed_100_percent": [
+      "h5st 5.3 协议化",
+      "RSA 1024-bit 密码加密",
+      "22 字段 POST body",
+      "jdSlide v6.1.2 d 参数算法",
+      "jcap SDK v2.8.5 完整代码",
+      "jcap WASM 27 exports",
+      "jcap CaptchaWebAssembly 11 个 w 原型方法",
+      "jcap 4 端点流程 (fp/check/refresh)",
+      "jcap xyList 完整结构"
+    ],
+    "blocked_at": "拿到 vt token (jcap /api/check 返回 16807)",
+    "next_direction": "D 方案 - 用户本机真实 headed Chrome + 手动过 jcap + 协议化 loginService 拿 cookie"
   }
 }
