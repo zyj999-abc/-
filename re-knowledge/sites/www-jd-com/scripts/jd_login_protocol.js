@@ -1,30 +1,41 @@
 /**
- * 京东完整协议化登录模块 (端到端)
+ * 京东完整协议化登录模块（端到端可执行版）
  * =========================================
+ *
+ * 关键设计：
+ *   1. 浏览器侧只做"用户介入过 jcap"（一次性手动操作 - 绕过服务端 ML）
+ *   2. 拿到 vt 后，**协议化构造 22 字段 POST body** + 调用 loginService
+ *   3. 提取 pt_key/pt_pin cookie + 输出可重用的 cookie 串
  *
  * 模块清单:
  *   1. h5st 5.3 协议还原 (Phase 1)
  *   2. RSA 1024-bit 密码加密 (Phase 2)
- *   3. jcap fp/check 验证码分析 (Phase 3)
- *   4. jdSlide 滑块 d 参数算法 (Phase 4) - 已完整还原
- *   5. loginService 协议化 (Phase 5)
+ *   3. jdSlide 滑块 d 参数算法 (Phase 4) - 已完整还原
+ *   4. jcap 验证码分析 (Phase 3) - 服务端 ML 检测无法用 puppeteer 自动化绕过
+ *   5. loginService 协议化 (Phase 5) - 22 字段 POST body
  *
  * 用法:
  *   const { JDLogin } = require('./jd_login_protocol');
- *   const jd = new JDLogin();
- *   await jd.login({ username, password });
+ *   const jd = new JDLogin({ headless: false });  // 必须 false 看到 jcap 弹窗
+ *   const result = await jd.login({ username, password });
+ *   console.log(result.cookieStr);
  *
- * 真实端到端需要:
- *   - 真实 headed Chrome + stealth (undetected-chromedriver / puppeteer-extra)
- *   - jdSlide 服务端会检测设备指纹, 真实 browser 才不会失败
- *   - 详见 REVERSE_ENGINEERING.md Phase 5
+ * 用户操作流程（一次性手动过 jcap）:
+ *   1. 启动脚本，浏览器打开登录页
+ *   2. 脚本自动输入账号密码 + 触发 jcap 弹窗
+ *   3. 看到 jcap 弹窗 → 用户手动拖动 / 画线 / 旋转
+ *   4. jcap 通过 → 脚本自动捕获 vt
+ *   5. 脚本协议化 loginService → 拿 pt_key/pt_pin
  */
 
-const puppeteer = require('puppeteer-core');
+const puppeteer = require('puppeteer-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 const path = require('path');
-const { spawnSync } = require('child_process');
+
+puppeteer.use(StealthPlugin());
 
 const PROJECT_ROOT = path.resolve(__dirname, '..', '..', '..', '..');
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
 // ============================================
 // 1. h5st 5.3 协议还原模块
@@ -32,24 +43,15 @@ const PROJECT_ROOT = path.resolve(__dirname, '..', '..', '..', '..');
 const H5ST_5_3 = {
   algorithm: 'CryptoJS.HmacSHA256 + ParamsSign',
   version: '5.3',
-  // 从 h5st.js 反编译
-  // ParamsSign 类:
-  //   - signContent(params) -> {h5st: '...', _ste: '...', _ts: '...', ...}
-  // signContent 内部:
-  //   - token = ParamsSign.t + ParamsSign.s + ParamsSign.f + ParamsSign.appId
-  //   - 对 body 字段做 SHA256(JSON)
-  //   - 用 CryptoJS.HmacSHA256(hash, token) 生成 h5st
   fields: {
     t: 'token 1 (tk1)',
     s: 'token 2 (tk2)',
     f: 'function name',
-    appId: 'appId (e.g. search-m, 3c141, etc.)',
+    appId: 'appId',
     ts: 'timestamp (ms)',
     body: 'business data (signed)',
   },
-  // 算法 signH5st(token, h5st.content) -> HMAC-SHA256
   signH5st: function(token, content) {
-    // CryptoJS.HmacSHA256(content, token).toString()
     const CryptoJS = require('crypto-js');
     return CryptoJS.HmacSHA256(content, token).toString();
   },
@@ -63,7 +65,6 @@ const RSA_PWD_ENC = {
   library: 'jsencrypt',
   publicKey: 'MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDCUkSA1JEO8dzSX5SYaiTO7yhGoIvR1lL1iY4klAz6XdqJ3NVlDtHF9txMFOSwoRZVjPaCft0yYAV3zJafEMRp+XeLNvDm6ZmozDsi7LuJvbvDZusUtoL1L+OoCkpVUuYZzW0ZeQrJ3DdtxsIFDN7B/2PogwETA4KzVA8XcGhlQIDAQAB',
   encrypt: function(plaintext) {
-    // 117 字节上限 (1024-bit RSA)
     if (plaintext.length > 117) {
       throw new Error('password too long, max 117 bytes');
     }
@@ -75,7 +76,7 @@ const RSA_PWD_ENC = {
 };
 
 // ============================================
-// 3. jcap 验证码 (WASM 行为验证)
+// 3. jcap 验证码 (服务端 ML 检测)
 // ============================================
 const JCAP_2_8_5 = {
   algorithm: '行为验证 + WASM 加密',
@@ -86,15 +87,12 @@ const JCAP_2_8_5 = {
     check: { interfaceId: 268435460, name: 'check' },
     verify: { interfaceId: 268435462, name: 'verify' },
   },
-  // tk/ct/cs 都是 WASM HMAC-SHA256 加密 (wA.getSensorInfo / k)
-  // fp 响应: { st, fp, tp }
-  //   tp=0: 无需验证
-  //   tp=9: 跳过
-  //   tp=30: 图形码 (实际返回 ddddocr 宣传图, 反爬)
-  //
-  // 协议化分析: jcap 实际是行为验证, 纯协议化困难
-  // 真实方案: 走 jdSlide 滑块代替 jcap
+  // 验证流程: /api/fp → /api/check (返回 vt) → /api/refresh
+  // vt 是 jcap 验证通过后的 token, 用于 loginService
+  // 服务端 ML 检测 16807 = 验证失败
+  // 绕过: 用户在本机真实 Chrome 手动操作绕过 ML
   requires_browser: true,
+  bypass_strategy: '用户手动介入 + 协议化 loginService',
 };
 
 // ============================================
@@ -132,11 +130,6 @@ const JDSLIDE_D = {
     return f;
   },
 
-  /**
-   * 编码 mousePos 为 d 参数
-   * P0:  x(3) + y(4) + t(7) (isFirst=true)
-   * P1+: sign(1) + dx(2) + sign(1) + dy(2) + dt(4) (dt isFirst=true!)
-   */
   getCoordinate: function(mousePos) {
     const c = [];
     for (let d = 0; d < mousePos.length; d++) {
@@ -150,7 +143,7 @@ const JDSLIDE_D = {
         const dt = mousePos[d][2] - mousePos[d - 1][2];
         c.push(this.pretreatment(Math.min(dx, 0xfff), 2, false));
         c.push(this.pretreatment(Math.min(dy, 0xfff), 2, false));
-        c.push(this.pretreatment(Math.min(dt, 0xffffff), 4, true));  // dt isFirst=true!
+        c.push(this.pretreatment(Math.min(dt, 0xffffff), 4, true));
       }
     }
     return c.join('');
@@ -200,50 +193,45 @@ const LOGIN_SERVICE = {
   url: 'https://passport.jd.com/uc/loginService',
   method: 'POST',
   contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
-  // 22 字段 - 完整见 REVERSE_ENGINEERING.md Phase 2.2
   fields: [
-    'uuid', 'version', 'riskControl', 'auth_token', 'verifycode', 'pubkey',
-    'eid', 'fp', 'sfv', 'p', 'at', 'aes', 'st', 'tk', 'en_rsa',
-    'jzdid', 'gufen', 'track', 'h5st', 'h5st_version', 't', 'ia', 'sa', 'or',
-    'autoAction', 'loginName', 'nloginpwd', 'mainVerifyCode', 'savelogin',
-    'type', 'bizType',
+    'uuid', 'eid', 'fp', 'eid2', '_t', 'loginType', 'loginname', 'nloginpwd',
+    'authcode', 'pubKey', 'sa_token', 'seqSid', 'useSlideAuthCode',
+    'pageSource', 'pageLocation', 'firstShowAccountLoginPage', 'ssoDomains',
+    'expgroup', 'graphicCaptchaSessionId', 'graphicCaptchaJwtToken',
+    'verifycode (jcap vt)', 'st (jcap st)', 'jcap_fp (jcap fp)',
   ],
-  // 实际抓包 2150 chars body
-  // 详见 scripts/17_capture_full_login.js
 };
 
 // ============================================
-// 8. JDLogin 主类 - 端到端
+// 8. JDLogin 主类 - 端到端协议化登录
 // ============================================
 class JDLogin {
   constructor(options = {}) {
-    this.executablePath = options.executablePath || '/opt/google/chrome/chrome';
-    this.headless = options.headless !== false;
+    // Chrome 路径自动检测: 优先环境变量，其次 puppeteer 默认下载位置
+    this.executablePath = options.executablePath || process.env.CHROME_PATH || null;
+    this.headless = options.headless !== undefined ? options.headless : false;  // 默认 false 让用户能手动过 jcap
     this.useStealth = options.useStealth !== false;
+    this.jcapTimeoutMs = options.jcapTimeoutMs || 90000;  // 等用户手动过 jcap 的超时
   }
 
   /**
-   * 端到端登录流程
+   * 端到端协议化京东登录
    * @param {Object} options
-   * @param {string} options.username
-   * @param {string} options.password
-   * @param {boolean} options.protocol_only 纯协议化模式 (不打开浏览器)
-   * @returns {Promise<{success, cookies, validate, message}>}
+   * @param {string} options.username - 京东账号（手机/邮箱）
+   * @param {string} options.password - 密码
+   * @returns {Promise<{success, cookies, cookieStr, validate, message}>}
    */
   async login(options) {
-    const { username, password, protocol_only = false } = options;
-    if (protocol_only) {
-      return this._protocolOnly(username, password);
-    } else {
-      return this._browserFlow(username, password);
+    const { username, password } = options;
+    if (!username || !password) {
+      throw new Error('username and password required');
     }
-  }
 
-  async _browserFlow(username, password) {
-    console.log(`[JDLogin] Browser flow for ${username} ...`);
-    const browser = await puppeteer.launch({
-      executablePath: this.executablePath,
-      headless: this.headless ? 'new' : false,
+    console.log(`[JDLogin] 端到端协议化登录: ${username}`);
+    console.log(`[JDLogin] headless=${this.headless} stealth=${this.useStealth}`);
+
+    const launchOptions = {
+      headless: this.headless === true ? 'new' : this.headless,  // true→'new', false→headed
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
@@ -251,133 +239,280 @@ class JDLogin {
         '--window-size=1366,768',
       ],
       defaultViewport: { width: 1366, height: 768, deviceScaleFactor: 1 },
-    });
+    };
+    if (this.executablePath) {
+      launchOptions.executablePath = this.executablePath;
+    }
 
+    const browser = await puppeteer.launch(launchOptions);
     try {
-      const page = await browser.newPage();
-      await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36');
-      await page.evaluateOnNewDocument(() => {
-        Object.defineProperty(navigator, 'webdriver', { get: () => false });
-        window.chrome = { runtime: {}, loadTimes: () => ({}), csi: () => ({}) };
-      });
-
-      // 1. 打开 login page
-      await page.goto('https://passport.jd.com/uc/login', { waitUntil: 'networkidle0' });
-      await new Promise(r => setTimeout(r, 3000));
-
-      // 2. 填账号密码
-      await page.evaluate((u, p) => {
-        const a = document.querySelector('#loginname');
-        const p1 = document.querySelector('#nloginpwd');
-        if (a) { a.value = u; a.dispatchEvent(new Event('input', { bubbles: true })); }
-        if (p1) { p1.value = p; p1.dispatchEvent(new Event('input', { bubbles: true })); }
-      }, username, password);
-
-      // 3. 触发 jdSlide 验证码
-      // 多次点击触发风控
-      for (let i = 0; i < 3; i++) {
-        await page.evaluate(() => {
-          const btn = document.querySelector('.login-btn');
-          if (btn) btn.click();
-        });
-        await new Promise(r => setTimeout(r, 4000));
-      }
-
-      // 4. 等 jdSlide/jcap 出现
-      const captchaState = await this._waitForCaptcha(page);
-      console.log('  captcha state:', captchaState);
-
-      // 5. 走完验证 (jdSlide 或 jcap)
-      let validate = null;
-      if (captchaState.type === 'jdslide') {
-        validate = await this._solveJdSlide(page);
-      } else if (captchaState.type === 'jcap') {
-        validate = await this._solveJcap(page);
-      }
-
-      // 6. 拿 cookie
-      const cookies = await page.cookies();
-      return { success: true, cookies, validate };
+      const result = await this._e2eFlow(browser, username, password);
+      return result;
     } finally {
       await browser.close();
     }
   }
 
-  async _waitForCaptcha(page, timeout = 30000) {
-    const start = Date.now();
-    while (Date.now() - start < timeout) {
-      const state = await page.evaluate(() => {
-        const hasJdSlide = !!document.querySelector('.JDJRV-slide, .slide-authCode-wraper, #jd_slide_container');
-        const hasJcap = !!document.querySelector('.jcap_main, [class*=jcap]:visible');
-        if (hasJdSlide) return { type: 'jdslide' };
-        if (hasJcap) return { type: 'jcap' };
-        return { type: null };
+  /**
+   * 端到端流程：
+   *   1. 打开登录页 + 抓 form 字段
+   *   2. 输入账号密码 + RSA 加密
+   *   3. 触发 jcap（多次点击登录）
+   *   4. **等用户手动过 jcap**（CDP 监控 /api/check 捕获 vt）
+   *   5. 协议化 loginService（22 字段 POST body + vt）
+   *   6. 提取 pt_key/pt_pin cookie
+   */
+  async _e2eFlow(browser, username, password) {
+    const page = await browser.newPage();
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36');
+    await page.setExtraHTTPHeaders({ 'Accept-Language': 'zh-CN,zh;q=0.9' });
+
+    if (this.useStealth) {
+      await page.evaluateOnNewDocument(() => {
+        Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+        Object.defineProperty(navigator, 'languages', { get: () => ['zh-CN', 'zh', 'en'] });
+        Object.defineProperty(navigator, 'platform', { get: () => 'Win32' });
+        window.chrome = {
+          app: { isInstalled: false, InstallState: {}, RunningState: {} },
+          runtime: { OnInstalledReason: {}, OnRestartRequiredReason: {}, PlatformArch: {}, PlatformNaclArch: {}, PlatformOs: {}, RequestUpdateCheckStatus: {}, connect: () => {}, sendMessage: () => {} },
+          loadTimes: () => ({}),
+          csi: () => ({}),
+        };
       });
-      if (state.type) return state;
-      await new Promise(r => setTimeout(r, 1000));
     }
-    return { type: null };
-  }
 
-  async _solveJdSlide(page) {
-    // 强制 btn 可见
-    await page.evaluate(() => {
-      const btn = document.querySelector('.JDJRV-slide-btn');
-      if (btn) btn.style.cssText = 'position:absolute;left:0;top:0;width:55px;height:55px;display:block;background:red;cursor:pointer;z-index:99999;';
+    // CDP 网络监控
+    const cdp = await page.target().createCDPSession();
+    await cdp.send('Network.enable');
+    const apiResponses = [];
+    cdp.on('Network.requestWillBeSent', (e) => {
+      if (e.request.url.includes('/cgi-bin/api/')) {
+        apiResponses.push({ requestId: e.requestId, url: e.request.url, t: Date.now() });
+      }
     });
-    await new Promise(r => setTimeout(r, 500));
+    cdp.on('Network.loadingFinished', async (e) => {
+      const r = apiResponses.find(r => r.requestId === e.requestId);
+      if (!r) return;
+      try {
+        const resp = await cdp.send('Network.getResponseBody', { requestId: e.requestId });
+        r.body = resp.body || '';
+      } catch (err) {}
+    });
 
-    // 真实 mouse 拖动
-    const setup = await page.evaluate(() => {
-      const btn = document.querySelector('.JDJRV-slide-btn');
-      const bg = btn.parentElement;
-      const r = btn.getBoundingClientRect();
-      const bgR = bg.getBoundingClientRect();
-      return { startX: r.x + r.width/2, startY: bgR.y + bgR.height/2, endX: bgR.x + 240 };
-    });
-    await page.mouse.move(setup.startX, setup.startY);
-    await new Promise(r => setTimeout(r, 200));
-    await page.evaluate((x, y) => {
-      const btn = document.querySelector('.JDJRV-slide-btn');
-      btn.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, view: window, button: 0, clientX: x, clientY: y }));
-    }, setup.startX, setup.startY);
-    await new Promise(r => setTimeout(r, 100));
-    await page.mouse.down();
-    for (let i = 1; i <= 55; i++) {
-      const t = i / 55;
-      const x = setup.startX + (setup.endX - setup.startX) * (1 - Math.pow(1-t, 2.5));
-      const y = setup.startY + Math.sin(t * Math.PI * 2.5) * 1.2;
-      await page.mouse.move(x, y, { steps: 1 });
-      await new Promise(r => setTimeout(r, 20 + Math.random() * 25));
+    // ============================================
+    // 步骤 1: 首页热身
+    // ============================================
+    console.log('[1/7] 首页热身...');
+    await page.goto('https://www.jd.com', { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await sleep(3000);
+    for (let i = 0; i < 5; i++) {
+      await page.mouse.move(100 + Math.random() * 1100, 100 + Math.random() * 500, { steps: 10 });
+      await sleep(300 + Math.random() * 500);
     }
-    await new Promise(r => setTimeout(r, 500));
-    await page.mouse.up();
-    await new Promise(r => setTimeout(r, 12000));
 
-    // 拿 callback
-    const cb = await page.evaluate(() => {
-      const data = window.__slideData;
-      if (!data) return null;
-      const out = {};
-      try { out.success = data.getSuccess ? data.getSuccess() : null; } catch (e) {}
-      try { out.message = data.getMessage ? data.getMessage() : null; } catch (e) {}
-      try { out.validate = data.getValidate ? data.getValidate() : null; } catch (e) {}
-      return out;
-    });
-    return cb?.validate || null;
+    // ============================================
+    // 步骤 2: 登录页 + 抓 form 字段
+    // ============================================
+    console.log('[2/7] 打开登录页抓 form 字段...');
+    await page.goto('https://passport.jd.com/uc/login', { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await sleep(3000);
+
+    const form = await this._captureForm(page);
+    console.log(`  uuid=${form.uuid?.substring(0, 16)}... eid=${form.eid?.substring(0, 16)}...`);
+    console.log(`  sa_token=${form.sa_token?.substring(0, 20)}...`);
+
+    // ============================================
+    // 步骤 3: 输入账号密码 + RSA 加密
+    // ============================================
+    console.log('[3/7] 输入账号密码 + RSA 加密...');
+    await this._humanType(page, '#loginname', username);
+    await this._humanType(page, '#nloginpwd', password);
+
+    const nloginpwd = await page.evaluate((pubKey, pwd) => {
+      const c = new JSEncrypt();
+      c.setPublicKey(pubKey);
+      return c.encrypt(pwd);
+    }, form.pubKey, password);
+    console.log(`  nloginpwd: ${nloginpwd?.substring(0, 50)}... (${nloginpwd?.length} chars)`);
+
+    // ============================================
+    // 步骤 4: 触发 jcap
+    // ============================================
+    console.log('[4/7] 触发 jcap...');
+    const btnEl = await page.$('.login-btn');
+    const btnBox = await btnEl.boundingBox();
+    for (let i = 1; i <= 4; i++) {
+      await page.mouse.click(btnBox.x + btnBox.width / 2, btnBox.y + btnBox.height / 2);
+      await sleep(3000);
+      const hasModal = await page.evaluate(() => !!document.querySelector('#captcha_modal, .captcha_modal_pc'));
+      if (hasModal) {
+        console.log(`  ✅ 第 ${i} 次点击触发 jcap 弹窗`);
+        break;
+      }
+    }
+
+    // ============================================
+    // 步骤 5: 等用户手动过 jcap（CDP 监控 /api/check 捕获 vt）
+    // ============================================
+    console.log('[5/7] 等待用户手动通过 jcap...');
+    if (this.headless !== 'new') {
+      console.log('  ⏳ 浏览器已打开可见窗口，请手动操作 jcap 弹窗');
+    } else {
+      console.log('  ⏳ headless 模式无 X server，请用 headed 模式重跑（new JDLogin({ headless: false })）');
+    }
+
+    const captcha = await this._waitForCaptchaVT(page, apiResponses, this.jcapTimeoutMs);
+    if (!captcha.vt) {
+      console.log('  ❌ 超时未拿到 vt token');
+      return { success: false, message: 'jcap timeout: no vt captured', cookies: null, cookieStr: null };
+    }
+    console.log(`  ✅ 拿到 vt: ${captcha.vt.substring(0, 30)}...`);
+    console.log(`     st: ${captcha.st}`);
+    console.log(`     fp: ${captcha.fp?.substring(0, 30)}...`);
+
+    // ============================================
+    // 步骤 6: 协议化 loginService
+    // ============================================
+    console.log('[6/7] 协议化 loginService POST（22 字段）...');
+
+    // 重新抓一次 form 字段（页面状态可能更新）
+    const form2 = await this._captureForm(page);
+    const loginResult = await this._protocolLoginService(page, form2, nloginpwd, username, captcha);
+    console.log(`  loginService 响应: ${loginResult.text?.substring(0, 300)}`);
+
+    // ============================================
+    // 步骤 7: 提取 cookie
+    // ============================================
+    console.log('[7/7] 提取 pt_key / pt_pin cookie...');
+    const cookies = await page.cookies();
+    const ptKey = cookies.find(c => c.name === 'pt_key');
+    const ptPin = cookies.find(c => c.name === 'pt_pin');
+    const ptToken = cookies.find(c => c.name === 'pt_token');
+
+    if (ptKey && ptPin) {
+      const cookieStr = `pt_key=${ptKey.value};pt_pin=${ptPin.value};${ptToken ? 'pt_token=' + ptToken.value + ';' : ''}`.replace(/;$/, '');
+      console.log(`\n🎉 协议化登录成功！`);
+      console.log(`  pt_key: ${ptKey.value.substring(0, 50)}...`);
+      console.log(`  pt_pin: ${ptPin.value}`);
+      console.log(`  Cookie 串: ${cookieStr}`);
+      return { success: true, cookies: { pt_key: ptKey.value, pt_pin: ptPin.value, pt_token: ptToken?.value }, cookieStr, validate: captcha.vt };
+    } else {
+      console.log('  ❌ 未拿到 pt_key/pt_pin');
+      console.log(`  所有 cookies: ${cookies.map(c => c.name).join(', ')}`);
+      return { success: false, message: 'no pt_key/pt_pin cookie', cookies: null, cookieStr: null, loginResponse: loginResult.text };
+    }
   }
 
-  async _solveJcap(page) {
-    // jcap 是行为验证, 真实协议化困难
-    // 这里只做基础: 等用户手动通过
-    return null;
+  async _captureForm(page) {
+    return page.evaluate(() => ({
+      uuid: $('#uuid').val(),
+      eid: $('#eid').val(),
+      fp: $('#sessionId').val(),
+      eid2: $('#eid2').val(),
+      token: $('#token').val(),
+      loginType: $('#loginType').val(),
+      pubKey: $('#pubKey').val(),
+      useSlideAuthCode: $('#useSlideAuthCode').val(),
+      firstShowAccountLoginPage: $('#firstShowAccountLoginPage').val(),
+      sa_token: $('#sa_token').val(),
+      expgroup: $('#expgroup').val(),
+      pageSource: $('#pageSource').val(),
+      pageLocation: $('#pageLocation').val(),
+      graphicCaptchaSessionId: $('#graphicCaptchaSessionId').val(),
+      graphicCaptchaJwtToken: $('#graphicCaptchaJwtToken').val(),
+    }));
   }
 
-  async _protocolOnly(username, password) {
-    // 纯协议化模式 - 走 fetch
-    // 需要真实 eid/jsTk/sessionId, 这只能从真实 browser 拿
-    console.log('[JDLogin] Protocol-only mode: requires eid/jsTk/sessionId from real browser');
-    throw new Error('protocol-only mode requires eid/jsTk/sessionId from real browser, see REVERSE_ENGINEERING.md');
+  async _humanType(page, sel, text) {
+    const el = await page.$(sel);
+    const box = await el.boundingBox();
+    await page.mouse.click(box.x + 50, box.y + box.height / 2);
+    await sleep(300);
+    for (let i = 0; i < text.length; i++) {
+      await page.keyboard.type(text[i], { delay: 80 + Math.random() * 120 });
+    }
+    await sleep(500);
+  }
+
+  /**
+   * 等用户手动过 jcap，捕获 vt token
+   * 监控 /api/check 响应，code=0 且有 vt 表示通过
+   */
+  async _waitForCaptchaVT(page, apiResponses, timeoutMs) {
+    const startTime = Date.now();
+    const seen = new Set();
+    while (Date.now() - startTime < timeoutMs) {
+      for (const r of apiResponses) {
+        if (r.body && !seen.has(r.requestId) && r.url.includes('/check')) {
+          seen.add(r.requestId);
+          try {
+            const j = JSON.parse(r.body);
+            const time = new Date(r.t).toISOString().slice(11, 19);
+            console.log(`  [${time}] /api/check: code=${j.code} tp=${j.tp} vt=${j.vt ? 'YES' : 'null'}`);
+            if (j.code === 0 && j.vt) {
+              // 找最新的 fp
+              let fp = null;
+              for (let i = apiResponses.length - 1; i >= 0; i--) {
+                if (apiResponses[i].url.includes('/fp') && apiResponses[i].body) {
+                  try {
+                    const fpj = JSON.parse(apiResponses[i].body);
+                    if (fpj.fp) { fp = fpj.fp; break; }
+                  } catch (e) {}
+                }
+              }
+              return { vt: j.vt, st: j.st, fp };
+            }
+          } catch (e) {}
+        }
+      }
+      await sleep(1000);
+    }
+    return { vt: null, st: null, fp: null };
+  }
+
+  /**
+   * 协议化 loginService POST（22 字段）
+   * 在 page context 内执行，使用真实的 h5st + eid + sa_token 等
+   */
+  async _protocolLoginService(page, form, nloginpwd, username, captcha) {
+    return page.evaluate(async (form, nloginpwd, username, captcha) => {
+      const data = new URLSearchParams();
+      data.append('uuid', form.uuid);
+      data.append('eid', form.eid);
+      data.append('fp', form.fp);
+      data.append('eid2', form.eid2);
+      data.append('_t', form.token);
+      data.append('loginType', form.loginType);
+      data.append('loginname', $('#loginname').val() || username);
+      data.append('nloginpwd', nloginpwd);
+      data.append('authcode', '');
+      data.append('pubKey', form.pubKey);
+      data.append('sa_token', form.sa_token);
+      data.append('seqSid', window._jdtdmap_sessionId || '');
+      data.append('useSlideAuthCode', form.useSlideAuthCode);
+      data.append('pageSource', form.pageSource);
+      data.append('pageLocation', form.pageLocation);
+      data.append('firstShowAccountLoginPage', form.firstShowAccountLoginPage);
+      data.append('ssoDomains', '');
+      data.append('expgroup', form.expgroup);
+      // 关键: 注入 jcap vt + st + fp
+      if (captcha.vt) data.append('verifycode', captcha.vt);
+      if (captcha.st) data.append('st', captcha.st);
+      if (captcha.fp) data.append('jcap_fp', captcha.fp);
+      if (form.graphicCaptchaSessionId) data.append('graphicCaptchaSessionId', form.graphicCaptchaSessionId);
+      if (form.graphicCaptchaJwtToken) data.append('graphicCaptchaJwtToken', form.graphicCaptchaJwtToken);
+
+      const r = await fetch(`/uc/loginService?r=${Math.random()}&version=2015`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
+          Referer: 'https://passport.jd.com/uc/login',
+        },
+        body: data.toString(),
+      });
+      const text = await r.text();
+      return { status: r.status, text, cookies: document.cookie };
+    }, form, nloginpwd, username, captcha);
   }
 }
 
