@@ -9,26 +9,28 @@
   <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg-deep: #0f0b14;
-      --bg-accent: #1a1225;
-      --flame-core: #ffffff;
-      --flame-inner: #fff6a3;
-      --flame-mid: #ff9d00;
-      --flame-outer: #ff4500;
-      --flame-blue: #4dabf7;
-      --flame-glow: rgba(255, 120, 0, 0.55);
-      --cream: #fff8e7;
-      --cream-shadow: #eaddc5;
-      --cake-base: #5c3a21;
-      --cake-dark: #3e2413;
-      --candle-body: #ff6b9d;
-      --candle-light: #ff9fb8;
-      --candle-dark: #d14a7a;
-      --wick: #2b1d14;
-      --wick-glow: #ff6b35;
-      --smoke: rgba(200, 200, 200, 0.75);
-      --text-main: #fff4e0;
-      --text-muted: #b8a8c6;
+      --bg-deep: #0a080e;
+      --bg-accent: #15101c;
+      --wax-base: #f7efe6;
+      --wax-mid: #e8ddd0;
+      --wax-shadow: #cbbba8;
+      --wax-dark: #a89988;
+      --wick: #221610;
+      --wick-ember: #ff5e2b;
+      --flame-blue: #5c9dff;
+      --flame-white: #fffce8;
+      --flame-yellow: #ffdb4d;
+      --flame-orange: #ff7700;
+      --flame-red: #ff3d00;
+      --flame-glow: rgba(255, 110, 0, 0.5);
+      --cream: #fffaf0;
+      --cream-shadow: #eee3d4;
+      --cake-base: #6b4423;
+      --cake-dark: #4a2e17;
+      --plate: #f0f0f0;
+      --smoke: rgba(210, 210, 210, 0.78);
+      --text-main: #fff6e8;
+      --text-muted: #b8acc4;
       --accent: #ffd166;
     }
 
@@ -45,8 +47,8 @@
     body {
       font-family: 'Quicksand', sans-serif;
       background:
-        radial-gradient(circle at 50% 40%, rgba(255, 130, 0, 0.18), transparent 50%),
-        radial-gradient(circle at 50% 120%, rgba(255, 80, 0, 0.12), transparent 60%),
+        radial-gradient(circle at 50% 38%, rgba(255, 120, 0, 0.16), transparent 48%),
+        radial-gradient(circle at 50% 130%, rgba(255, 70, 0, 0.1), transparent 55%),
         linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-accent) 100%);
       color: var(--text-main);
       overflow: hidden;
@@ -60,18 +62,18 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 700px;
-      height: 700px;
-      background: radial-gradient(circle, rgba(255, 140, 0, 0.12) 0%, transparent 65%);
+      width: 720px;
+      height: 720px;
+      background: radial-gradient(circle, rgba(255, 120, 0, 0.1) 0%, transparent 62%);
       border-radius: 50%;
       pointer-events: none;
-      animation: ambient-pulse 3s ease-in-out infinite alternate;
+      animation: ambient-pulse 3.2s ease-in-out infinite alternate;
       z-index: 0;
     }
 
     @keyframes ambient-pulse {
-      0% { opacity: 0.7; transform: translate(-50%, -50%) scale(1); }
-      100% { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
+      0% { opacity: 0.65; transform: translate(-50%, -50%) scale(1); }
+      100% { opacity: 0.95; transform: translate(-50%, -50%) scale(1.06); }
     }
 
     .scene {
@@ -87,7 +89,7 @@
       font-family: 'Pacifico', cursive;
       font-size: clamp(2rem, 8vw, 3.4rem);
       color: var(--accent);
-      text-shadow: 0 0 28px rgba(255, 209, 102, 0.4);
+      text-shadow: 0 0 30px rgba(255, 209, 102, 0.4);
       margin-bottom: 8px;
       opacity: 0;
       transform: translateY(-16px);
@@ -102,7 +104,7 @@
     .subtitle {
       font-size: clamp(0.95rem, 3.5vw, 1.15rem);
       color: var(--text-muted);
-      margin-bottom: 24px;
+      margin-bottom: 22px;
       opacity: 0;
       transition: opacity 0.8s ease 0.2s;
     }
@@ -113,29 +115,44 @@
 
     .cake-container {
       position: relative;
-      height: 340px;
+      height: 360px;
       display: flex;
       align-items: flex-end;
       justify-content: center;
-      margin-bottom: 28px;
+      margin-bottom: 26px;
     }
 
     .cake {
       position: relative;
-      width: 260px;
-      height: 165px;
+      width: 270px;
+      height: 175px;
+    }
+
+    .plate {
+      position: absolute;
+      bottom: -18px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 300px;
+      height: 36px;
+      background:
+        radial-gradient(ellipse at 50% 30%, rgba(255,255,255,0.9) 0%, var(--plate) 40%, #c8c8c8 70%, #a0a0a0 100%);
+      border-radius: 50%;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+      z-index: 0;
     }
 
     .cake-shadow {
       position: absolute;
-      bottom: -12px;
+      bottom: -8px;
       left: 50%;
       transform: translateX(-50%);
-      width: 260px;
-      height: 30px;
+      width: 240px;
+      height: 26px;
       background: rgba(0, 0, 0, 0.35);
       border-radius: 50%;
-      filter: blur(8px);
+      filter: blur(10px);
+      z-index: 1;
     }
 
     .cake-layer {
@@ -143,150 +160,168 @@
       left: 50%;
       transform: translateX(-50%);
       border-radius: 14px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      z-index: 2;
     }
 
     .cake-layer.bottom {
       bottom: 0;
-      width: 260px;
-      height: 78px;
+      width: 250px;
+      height: 80px;
       background:
-        linear-gradient(180deg, rgba(255,255,255,0.06) 0%, transparent 15%),
+        linear-gradient(180deg, rgba(255,255,255,0.05) 0%, transparent 12%),
         linear-gradient(180deg, var(--cake-base) 0%, var(--cake-dark) 100%);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4);
     }
 
     .cake-layer.top {
-      bottom: 68px;
-      width: 215px;
-      height: 62px;
+      bottom: 70px;
+      width: 210px;
+      height: 64px;
       background:
-        linear-gradient(180deg, rgba(255,255,255,0.12) 0%, transparent 12%),
+        linear-gradient(180deg, rgba(255,255,255,0.12) 0%, transparent 10%),
         linear-gradient(180deg, var(--cream) 0%, var(--cream-shadow) 100%);
+      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
     }
 
     .drip {
       position: absolute;
       top: 10px;
       width: 16px;
-      background: var(--cream);
+      background: linear-gradient(180deg, var(--cream) 0%, var(--cream-shadow) 100%);
       border-radius: 0 0 50% 50%;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
     }
 
-    .drip:nth-child(1) { left: 30px; height: 22px; }
-    .drip:nth-child(2) { left: 68px; height: 32px; }
-    .drip:nth-child(3) { left: 108px; height: 24px; }
-    .drip:nth-child(4) { left: 148px; height: 36px; }
-    .drip:nth-child(5) { left: 184px; height: 20px; }
+    .drip:nth-child(1) { left: 32px; height: 24px; }
+    .drip:nth-child(2) { left: 72px; height: 34px; }
+    .drip:nth-child(3) { left: 112px; height: 26px; }
+    .drip:nth-child(4) { left: 154px; height: 38px; }
+    .drip:nth-child(5) { left: 192px; height: 22px; }
 
     .sprinkle {
       position: absolute;
       width: 9px;
       height: 4px;
       border-radius: 2px;
-      top: 22px;
+      top: 24px;
     }
 
-    .sprinkle:nth-child(6) { left: 46px; background: #ff6b6b; transform: rotate(25deg); }
-    .sprinkle:nth-child(7) { left: 92px; background: #4ecdc4; transform: rotate(-15deg); }
-    .sprinkle:nth-child(8) { left: 130px; background: #ffe66d; transform: rotate(40deg); }
-    .sprinkle:nth-child(9) { left: 170px; background: #ff9ff3; transform: rotate(-30deg); }
+    .sprinkle:nth-child(6) { left: 48px; background: #ff6b6b; transform: rotate(25deg); }
+    .sprinkle:nth-child(7) { left: 96px; background: #4ecdc4; transform: rotate(-15deg); }
+    .sprinkle:nth-child(8) { left: 136px; background: #ffe66d; transform: rotate(40deg); }
+    .sprinkle:nth-child(9) { left: 178px; background: #ff9ff3; transform: rotate(-30deg); }
 
     .candle-wrapper {
       position: absolute;
-      bottom: 138px;
+      bottom: 148px;
       left: 50%;
       transform: translateX(-50%);
-      width: 32px;
-      height: 105px;
+      width: 36px;
+      height: 120px;
+      z-index: 3;
     }
 
     .candle {
       position: relative;
       width: 100%;
       height: 100%;
-      border-radius: 6px 6px 4px 4px;
+      border-radius: 4px 4px 5px 5px;
       background:
+        radial-gradient(ellipse at 32% 18%, rgba(255,255,255,0.5) 0%, transparent 35%),
         linear-gradient(90deg,
-          var(--candle-dark) 0%,
-          var(--candle-body) 22%,
-          var(--candle-light) 45%,
-          var(--candle-body) 72%,
-          var(--candle-dark) 100%
-        );
+          rgba(0,0,0,0.28) 0%,
+          rgba(255,255,255,0.12) 14%,
+          transparent 42%,
+          rgba(255,255,255,0.18) 66%,
+          rgba(0,0,0,0.32) 100%
+        ),
+        linear-gradient(180deg, var(--wax-base) 0%, var(--wax-mid) 55%, var(--wax-shadow) 100%);
       box-shadow:
-        inset -5px 0 10px rgba(0, 0, 0, 0.2),
-        inset 5px 0 10px rgba(255, 255, 255, 0.15),
-        0 6px 16px rgba(0, 0, 0, 0.35);
+        inset -3px 0 6px rgba(0,0,0,0.12),
+        inset 3px 0 5px rgba(255,255,255,0.35),
+        0 8px 22px rgba(0,0,0,0.4);
     }
 
     .candle::before {
       content: '';
       position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 10px;
-      background:
-        radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.25) 0%, transparent 60%),
-        linear-gradient(180deg, rgba(0,0,0,0.1) 0%, transparent 100%);
-      border-radius: 6px 6px 0 0;
-    }
-
-    .candle-top {
-      position: absolute;
       top: -8px;
       left: 50%;
       transform: translateX(-50%);
-      width: 34px;
+      width: 38px;
       height: 16px;
       background:
-        radial-gradient(ellipse at 50% 30%, var(--candle-light) 0%, var(--candle-body) 60%, var(--candle-dark) 100%);
+        radial-gradient(ellipse at 50% 55%, rgba(0,0,0,0.18) 0%, transparent 45%),
+        radial-gradient(ellipse at 50% 25%, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.1) 45%, transparent 70%),
+        radial-gradient(ellipse at 50% 30%, var(--wax-base) 0%, var(--wax-mid) 55%, var(--wax-shadow) 100%);
       border-radius: 50%;
-      box-shadow: inset 0 -3px 6px rgba(0, 0, 0, 0.15);
-      z-index: 2;
+      box-shadow:
+        inset 0 -2px 4px rgba(0,0,0,0.08),
+        0 1px 2px rgba(0,0,0,0.12);
     }
 
-    .candle-top::after {
+    .candle::after {
       content: '';
       position: absolute;
-      top: 50%;
+      bottom: -6px;
       left: 50%;
-      transform: translate(-50%, -50%);
-      width: 10px;
-      height: 6px;
-      background: rgba(0, 0, 0, 0.12);
+      transform: translateX(-50%);
+      width: 38px;
+      height: 10px;
+      background: rgba(0,0,0,0.2);
       border-radius: 50%;
+      filter: blur(3px);
     }
 
     .wax-drip {
       position: absolute;
       top: 2px;
       width: 8px;
-      background: var(--candle-light);
+      background:
+        linear-gradient(90deg, var(--wax-shadow) 0%, var(--wax-base) 40%, var(--wax-mid) 100%);
       border-radius: 0 0 50% 50%;
-      opacity: 0.9;
+      box-shadow: inset -1px 0 2px rgba(0,0,0,0.08);
       z-index: 1;
     }
 
-    .wax-drip.left { left: 2px; height: 28px; }
-    .wax-drip.right { right: 3px; height: 36px; }
+    .wax-drip.left { left: 1px; height: 32px; }
+    .wax-drip.right { right: 2px; height: 42px; }
+    .wax-drip.front { left: 14px; height: 18px; opacity: 0.8; }
 
     .wick {
       position: absolute;
-      bottom: calc(100% - 4px);
+      bottom: calc(100% - 2px);
       left: 50%;
       transform: translateX(-50%);
-      width: 4px;
+      width: 3px;
       height: 14px;
-      background: linear-gradient(180deg, var(--wick) 60%, var(--wick-glow) 100%);
-      border-radius: 2px;
-      z-index: 3;
+      background: linear-gradient(90deg, #120a06 0%, #3d2b20 45%, #120a06 100%);
+      border-radius: 1px;
+      z-index: 4;
+    }
+
+    .wick::after {
+      content: '';
+      position: absolute;
+      bottom: -3px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 6px;
+      height: 6px;
+      background: radial-gradient(circle, var(--wick-ember) 0%, rgba(255,94,43,0.3) 60%, transparent 100%);
+      border-radius: 50%;
+      opacity: 0.85;
+      animation: ember-pulse 1.5s ease-in-out infinite alternate;
+    }
+
+    @keyframes ember-pulse {
+      0% { opacity: 0.7; transform: translateX(-50%) scale(1); }
+      100% { opacity: 0.95; transform: translateX(-50%) scale(1.15); }
     }
 
     .flame-assembly {
       position: absolute;
-      bottom: calc(100% + 6px);
+      bottom: calc(100% + 4px);
       left: 50%;
       transform: translateX(-50%);
       width: 70px;
@@ -294,7 +329,7 @@
       pointer-events: none;
       transform-origin: center bottom;
       transition: opacity 0.35s ease;
-      z-index: 4;
+      z-index: 5;
     }
 
     .flame-assembly.extinguished {
@@ -304,21 +339,21 @@
 
     .flame-glow {
       position: absolute;
-      bottom: -35px;
+      bottom: -40px;
       left: 50%;
       transform: translateX(-50%);
-      width: 200px;
-      height: 200px;
+      width: 220px;
+      height: 220px;
       background: radial-gradient(circle, var(--flame-glow) 0%, transparent 68%);
       border-radius: 50%;
-      opacity: 0.75;
-      animation: glow-pulse 1.8s ease-in-out infinite alternate;
+      opacity: 0.8;
+      animation: glow-pulse 1.6s ease-in-out infinite alternate;
       pointer-events: none;
     }
 
     @keyframes glow-pulse {
-      0% { opacity: 0.6; transform: translateX(-50%) scale(1); }
-      100% { opacity: 0.9; transform: translateX(-50%) scale(1.08); }
+      0% { opacity: 0.65; transform: translateX(-50%) scale(1); }
+      100% { opacity: 0.9; transform: translateX(-50%) scale(1.1); }
     }
 
     .flame-svg {
@@ -335,9 +370,9 @@
     .flame-outer-shape {
       fill: url(#flameOuterGrad);
       filter: url(#flameBlur);
-      opacity: 0.85;
+      opacity: 0.8;
       transform-origin: center bottom;
-      animation: flame-sway 1.4s ease-in-out infinite alternate;
+      animation: flame-sway 1.5s ease-in-out infinite alternate;
     }
 
     .flame-main-shape {
@@ -351,14 +386,14 @@
       fill: url(#flameCoreGrad);
       opacity: 1;
       transform-origin: center bottom;
-      animation: flame-sway 0.85s ease-in-out infinite alternate;
+      animation: flame-sway 0.8s ease-in-out infinite alternate;
     }
 
     .flame-base-shape {
       fill: url(#flameBaseGrad);
       opacity: 0.9;
       transform-origin: center bottom;
-      animation: flame-sway 0.7s ease-in-out infinite alternate-reverse;
+      animation: flame-sway 0.65s ease-in-out infinite alternate-reverse;
     }
 
     @keyframes flame-sway {
@@ -371,7 +406,7 @@
 
     .smoke-layer {
       position: absolute;
-      bottom: 235px;
+      bottom: 250px;
       left: 50%;
       transform: translateX(-50%);
       width: 90px;
@@ -403,10 +438,10 @@
         opacity: 0.55;
       }
       40% {
-        opacity: 0.4;
+        opacity: 0.38;
       }
       100% {
-        transform: translate(calc(-50% + var(--drift, 0px)), -150px) scale(2.2);
+        transform: translate(calc(-50% + var(--drift, 0px)), -150px) scale(2.4);
         opacity: 0;
       }
     }
@@ -415,25 +450,32 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 16px;
-      min-height: 96px;
+      gap: 14px;
+      min-height: 120px;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
     }
 
     .btn {
       font-family: 'Quicksand', sans-serif;
       font-weight: 700;
-      font-size: 1rem;
-      padding: 14px 32px;
+      font-size: 0.95rem;
+      padding: 13px 26px;
       border: none;
       border-radius: 999px;
       cursor: pointer;
       transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
     }
 
     .btn:hover {
       transform: translateY(-2px);
-      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
     }
 
     .btn:active {
@@ -539,10 +581,14 @@
 
     @media (max-width: 480px) {
       .cake {
-        transform: scale(0.88);
+        transform: scale(0.86);
       }
       .cake-container {
-        height: 300px;
+        height: 310px;
+      }
+      .btn {
+        padding: 12px 20px;
+        font-size: 0.9rem;
       }
     }
   </style>
@@ -552,43 +598,44 @@
 
   <div class="scene">
     <h1 class="title" id="title">Make a Wish</h1>
-    <p class="subtitle" id="subtitle">点击按钮开启麦克风，对着蜡烛吹气吧</p>
+    <p class="subtitle" id="subtitle">点击按钮开启麦克风，或用手动模式吹灭蜡烛</p>
 
     <svg width="0" height="0" style="position:absolute;">
       <defs>
         <linearGradient id="flameOuterGrad" x1="0%" y1="100%" x2="0%" y2="0%">
-          <stop offset="0%" stop-color="#ff4500" stop-opacity="0.9" />
-          <stop offset="50%" stop-color="#ff7800" stop-opacity="0.7" />
+          <stop offset="0%" stop-color="#ff4500" stop-opacity="0.85" />
+          <stop offset="45%" stop-color="#ff7700" stop-opacity="0.55" />
           <stop offset="100%" stop-color="#ff4500" stop-opacity="0" />
         </linearGradient>
         <linearGradient id="flameMainGrad" x1="0%" y1="100%" x2="0%" y2="0%">
-          <stop offset="0%" stop-color="#ff7800" />
-          <stop offset="45%" stop-color="#ffcc33" />
-          <stop offset="90%" stop-color="#fff6a3" stop-opacity="0.9" />
+          <stop offset="0%" stop-color="#ff8c00" />
+          <stop offset="40%" stop-color="#ffcc33" />
+          <stop offset="85%" stop-color="#fff6a3" stop-opacity="0.95" />
           <stop offset="100%" stop-color="#fff6a3" stop-opacity="0" />
         </linearGradient>
         <linearGradient id="flameCoreGrad" x1="0%" y1="100%" x2="0%" y2="0%">
-          <stop offset="0%" stop-color="#ffcc33" />
-          <stop offset="60%" stop-color="#ffffff" />
+          <stop offset="0%" stop-color="#ffdb4d" />
+          <stop offset="55%" stop-color="#ffffff" />
           <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
         </linearGradient>
         <linearGradient id="flameBaseGrad" x1="0%" y1="100%" x2="0%" y2="0%">
           <stop offset="0%" stop-color="#4dabf7" />
-          <stop offset="40%" stop-color="#ffffff" stop-opacity="0.8" />
+          <stop offset="35%" stop-color="#ffffff" stop-opacity="0.85" />
           <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
         </linearGradient>
         <filter id="flameBlur" x="-50%" y="-50%" width="200%" height="200%">
           <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" />
         </filter>
         <filter id="flameTurbulence" x="-50%" y="-50%" width="200%" height="200%">
-          <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="3" result="noise" />
-          <feDisplacementMap in="SourceGraphic" in2="noise" scale="4" xChannelSelector="R" yChannelSelector="G" />
+          <feTurbulence type="fractalNoise" baseFrequency="0.025" numOctaves="3" result="noise" />
+          <feDisplacementMap in="SourceGraphic" in2="noise" scale="3.5" xChannelSelector="R" yChannelSelector="G" />
         </filter>
       </defs>
     </svg>
 
     <div class="cake-container">
       <div class="cake">
+        <div class="plate"></div>
         <div class="cake-shadow"></div>
         <div class="cake-layer bottom"></div>
         <div class="cake-layer top">
@@ -605,9 +652,9 @@
 
         <div class="candle-wrapper">
           <div class="candle">
-            <div class="candle-top"></div>
             <div class="wax-drip left"></div>
             <div class="wax-drip right"></div>
+            <div class="wax-drip front"></div>
             <div class="wick">
               <div class="flame-assembly" id="flameAssembly">
                 <div class="flame-glow"></div>
@@ -627,8 +674,10 @@
     </div>
 
     <div class="controls" id="controls">
-      <button class="btn btn-primary" id="startBtn">开启麦克风，开始吹蜡烛</button>
-      <button class="btn btn-secondary hidden" id="manualBtn">点击模拟吹灭</button>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="startBtn">开启麦克风</button>
+        <button class="btn btn-secondary" id="manualBtn">手动吹灭</button>
+      </div>
     </div>
 
     <div class="volume-meter" id="volumeMeter">
@@ -668,9 +717,10 @@
     let currentScaleY = 1;
 
     const BLOW_THRESHOLD = 0.16;
-    const BLOW_REQUIRED = 26;
+    const BLOW_REQUIRED = 24;
     const SMOOTHING = 0.1;
     const VOLUME_CAP = 0.55;
+    const IS_IFRAME = window.self !== window.top;
 
     function initAudio() {
       if (audioContext) return Promise.resolve();
@@ -800,10 +850,10 @@
       smokeLayer.innerHTML = '';
       endMessage.classList.remove('visible');
       controls.classList.remove('hidden');
-      startBtn.classList.add('hidden');
-      manualBtn.classList.remove('hidden');
       volumeMeter.classList.add('visible');
-      hint.textContent = '对着麦克风吹气，把蜡烛吹灭吧';
+      hint.textContent = IS_IFRAME
+        ? '当前环境无法使用麦克风，请点击“手动吹灭”'
+        : '对着麦克风吹气，把蜡烛吹灭吧';
     }
 
     function loop() {
@@ -818,15 +868,12 @@
       initAudio()
         .then(() => {
           startBtn.classList.add('hidden');
-          manualBtn.classList.remove('hidden');
           volumeMeter.classList.add('visible');
           hint.textContent = '对着麦克风吹气，把蜡烛吹灭吧';
           loop();
         })
-        .catch(err => {
-          console.error(err);
-          hint.textContent = '无法访问麦克风，你可以点击“点击模拟吹灭”手动体验';
-          manualBtn.classList.remove('hidden');
+        .catch(() => {
+          hint.textContent = '麦克风权限被拒绝，请使用“手动吹灭”模式';
         });
     }
 
@@ -834,12 +881,15 @@
     manualBtn.addEventListener('click', extinguish);
     relightBtn.addEventListener('click', () => {
       relight();
-      loop();
+      if (analyser) loop();
     });
 
     window.addEventListener('load', () => {
       title.classList.add('visible');
       subtitle.classList.add('visible');
+      if (IS_IFRAME) {
+        hint.textContent = '当前为预览环境，麦克风可能不可用，可直接点击“手动吹灭”';
+      }
     });
   </script>
 </body>
