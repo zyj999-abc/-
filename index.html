@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>生日吹蜡烛</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-deep: #141019;
+      --bg-accent: #22152d;
+      --flame-core: #fff9c4;
+      --flame-inner: #ffcc33;
+      --flame-outer: #ff5e00;
+      --flame-glow: rgba(255, 140, 0, 0.45);
+      --cream: #fff8e7;
+      --cream-shadow: #e6dcc4;
+      --cake-base: #5c3a21;
+      --cake-dark: #3e2413;
+      --candle-body: #ff6b9d;
+      --candle-stripe: #ff8fb3;
+      --wick: #2b1d14;
+      --smoke: rgba(220, 220, 220, 0.7);
+      --text-main: #fff4e0;
+      --text-muted: #cbbad6;
+      --accent: #ffd166;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      font-family: 'Quicksand', sans-serif;
+      background:
+        radial-gradient(circle at 50% 35%, rgba(255, 140, 0, 0.12), transparent 55%),
+        radial-gradient(circle at 50% 100%, var(--bg-accent), var(--bg-deep) 70%);
+      color: var(--text-main);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .scene {
+      position: relative;
+      width: 100%;
+      max-width: 520px;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .title {
+      font-family: 'Pacifico', cursive;
+      font-size: clamp(2rem, 8vw, 3.2rem);
+      color: var(--accent);
+      text-shadow: 0 0 24px rgba(255, 209, 102, 0.35);
+      margin-bottom: 8px;
+      opacity: 0;
+      transform: translateY(-16px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+
+    .title.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .subtitle {
+      font-size: clamp(0.95rem, 3.5vw, 1.15rem);
+      color: var(--text-muted);
+      margin-bottom: 28px;
+      opacity: 0;
+      transition: opacity 0.8s ease 0.2s;
+    }
+
+    .subtitle.visible {
+      opacity: 1;
+    }
+
+    .cake-container {
+      position: relative;
+      height: 320px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      margin-bottom: 28px;
+    }
+
+    .cake {
+      position: relative;
+      width: 240px;
+      height: 150px;
+    }
+
+    .cake-layer {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+
+    .cake-layer.bottom {
+      bottom: 0;
+      width: 240px;
+      height: 70px;
+      background: linear-gradient(180deg, var(--cake-base) 0%, var(--cake-dark) 100%);
+    }
+
+    .cake-layer.top {
+      bottom: 62px;
+      width: 200px;
+      height: 55px;
+      background: linear-gradient(180deg, var(--cream) 0%, var(--cream-shadow) 100%);
+    }
+
+    .drip {
+      position: absolute;
+      top: 8px;
+      width: 14px;
+      height: 22px;
+      background: var(--cream);
+      border-radius: 0 0 50% 50%;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    }
+
+    .drip:nth-child(1) { left: 28px; height: 18px; }
+    .drip:nth-child(2) { left: 62px; height: 26px; }
+    .drip:nth-child(3) { left: 96px; height: 20px; }
+    .drip:nth-child(4) { left: 132px; height: 28px; }
+    .drip:nth-child(5) { left: 166px; height: 16px; }
+
+    .sprinkle {
+      position: absolute;
+      width: 8px;
+      height: 4px;
+      border-radius: 2px;
+      top: 18px;
+    }
+
+    .sprinkle:nth-child(6) { left: 42px; background: #ff6b6b; transform: rotate(25deg); }
+    .sprinkle:nth-child(7) { left: 86px; background: #4ecdc4; transform: rotate(-15deg); }
+    .sprinkle:nth-child(8) { left: 120px; background: #ffe66d; transform: rotate(40deg); }
+    .sprinkle:nth-child(9) { left: 156px; background: #ff9ff3; transform: rotate(-30deg); }
+
+    .candle {
+      position: absolute;
+      bottom: 122px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 26px;
+      height: 90px;
+      background: repeating-linear-gradient(
+        135deg,
+        var(--candle-body) 0px,
+        var(--candle-body) 8px,
+        var(--candle-stripe) 8px,
+        var(--candle-stripe) 16px
+      );
+      border-radius: 4px 4px 2px 2px;
+      box-shadow: inset -4px 0 8px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(0, 0, 0, 0.25);
+    }
+
+    .candle::after {
+      content: '';
+      position: absolute;
+      top: -6px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 28px;
+      height: 8px;
+      background: rgba(0, 0, 0, 0.12);
+      border-radius: 50%;
+    }
+
+    .wick {
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 4px;
+      height: 12px;
+      background: var(--wick);
+      border-radius: 2px;
+    }
+
+    .flame-group {
+      position: absolute;
+      bottom: calc(100% + 10px);
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 90px;
+      pointer-events: none;
+      transform-origin: center bottom;
+      transition: opacity 0.3s ease;
+    }
+
+    .flame-group.extinguished {
+      opacity: 0;
+      transform: translateX(-50%) scale(0.4) !important;
+    }
+
+    .flame {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+      transform-origin: center bottom;
+    }
+
+    .flame-outer {
+      width: 52px;
+      height: 78px;
+      background: radial-gradient(ellipse at 50% 75%, var(--flame-outer) 0%, transparent 70%);
+      filter: blur(6px);
+      opacity: 0.85;
+      animation: flicker-outer 1.2s infinite alternate ease-in-out;
+    }
+
+    .flame-mid {
+      width: 34px;
+      height: 56px;
+      background: radial-gradient(ellipse at 50% 75%, var(--flame-inner) 0%, var(--flame-outer) 70%, transparent 100%);
+      filter: blur(2px);
+      opacity: 0.95;
+      animation: flicker-mid 0.9s infinite alternate ease-in-out;
+    }
+
+    .flame-core {
+      width: 16px;
+      height: 30px;
+      background: radial-gradient(ellipse at 50% 80%, var(--flame-core) 0%, var(--flame-inner) 60%, transparent 100%);
+      opacity: 1;
+      animation: flicker-core 0.7s infinite alternate ease-in-out;
+    }
+
+    .glow {
+      position: absolute;
+      bottom: -30px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 160px;
+      height: 160px;
+      background: radial-gradient(circle, var(--flame-glow) 0%, transparent 70%);
+      border-radius: 50%;
+      opacity: 0.7;
+      animation: pulse-glow 2s infinite alternate ease-in-out;
+      pointer-events: none;
+    }
+
+    @keyframes flicker-outer {
+      0% { transform: translateX(-50%) scale(1) skewX(0deg); }
+      25% { transform: translateX(-52%) scale(1.03) skewX(2deg); }
+      50% { transform: translateX(-48%) scale(0.97) skewX(-1deg); }
+      75% { transform: translateX(-51%) scale(1.02) skewX(1deg); }
+      100% { transform: translateX(-49%) scale(0.98) skewX(-2deg); }
+    }
+
+    @keyframes flicker-mid {
+      0% { transform: translateX(-50%) scale(1) skewX(0deg); }
+      33% { transform: translateX(-49%) scale(1.05) skewX(-2deg); }
+      66% { transform: translateX(-51%) scale(0.95) skewX(2deg); }
+      100% { transform: translateX(-50%) scale(1) skewX(0deg); }
+    }
+
+    @keyframes flicker-core {
+      0% { transform: translateX(-50%) scale(1); opacity: 1; }
+      50% { transform: translateX(-52%) scale(1.08); opacity: 0.95; }
+      100% { transform: translateX(-48%) scale(0.92); opacity: 1; }
+    }
+
+    @keyframes pulse-glow {
+      0% { opacity: 0.55; transform: translateX(-50%) scale(1); }
+      100% { opacity: 0.8; transform: translateX(-50%) scale(1.06); }
+    }
+
+    .smoke-layer {
+      position: absolute;
+      bottom: 210px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 160px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+
+    .smoke-layer.visible {
+      opacity: 1;
+    }
+
+    .smoke {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      width: 14px;
+      height: 14px;
+      background: var(--smoke);
+      border-radius: 50%;
+      filter: blur(5px);
+      opacity: 0;
+    }
+
+    @keyframes rise {
+      0% {
+        transform: translate(-50%, 0) scale(0.6);
+        opacity: 0.6;
+      }
+      50% {
+        opacity: 0.4;
+      }
+      100% {
+        transform: translate(calc(-50% + var(--drift, 0px)), -130px) scale(1.8);
+        opacity: 0;
+      }
+    }
+
+    .controls {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      min-height: 96px;
+    }
+
+    .btn {
+      font-family: 'Quicksand', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 14px 32px;
+      border: none;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.3);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #ff9d00, #ff5e00);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #ffb133, #ff7a24);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-main);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.18);
+    }
+
+    .volume-meter {
+      width: 180px;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 3px;
+      overflow: hidden;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+
+    .volume-meter.visible {
+      opacity: 1;
+    }
+
+    .volume-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #4ecdc4, #ffe66d, #ff5e00);
+      border-radius: 3px;
+      transition: width 0.08s linear;
+    }
+
+    .hint {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      min-height: 1.4em;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .end-message {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.8s ease;
+    }
+
+    .end-message.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .end-message h2 {
+      font-family: 'Pacifico', cursive;
+      font-size: clamp(2.2rem, 9vw, 3.6rem);
+      color: var(--accent);
+      text-shadow: 0 0 30px rgba(255, 209, 102, 0.4);
+      margin-bottom: 12px;
+    }
+
+    .end-message p {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      margin-bottom: 24px;
+    }
+
+    .sparkle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: var(--accent);
+      border-radius: 50%;
+      opacity: 0;
+      animation: sparkle-anim 1.2s ease-out forwards;
+      pointer-events: none;
+    }
+
+    @keyframes sparkle-anim {
+      0% { opacity: 1; transform: translate(0, 0) scale(1); }
+      100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0); }
+    }
+
+    @media (max-width: 480px) {
+      .cake {
+        transform: scale(0.9);
+      }
+      .cake-container {
+        height: 280px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="scene">
+    <h1 class="title" id="title">Make a Wish</h1>
+    <p class="subtitle" id="subtitle">点击按钮开启麦克风，对着蜡烛吹气吧</p>
+
+    <div class="cake-container">
+      <div class="cake">
+        <div class="cake-layer bottom"></div>
+        <div class="cake-layer top">
+          <div class="drip"></div>
+          <div class="drip"></div>
+          <div class="drip"></div>
+          <div class="drip"></div>
+          <div class="drip"></div>
+          <div class="sprinkle"></div>
+          <div class="sprinkle"></div>
+          <div class="sprinkle"></div>
+          <div class="sprinkle"></div>
+        </div>
+        <div class="candle">
+          <div class="wick">
+            <div class="flame-group" id="flameGroup">
+              <div class="glow"></div>
+              <div class="flame flame-outer"></div>
+              <div class="flame flame-mid"></div>
+              <div class="flame flame-core"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="smoke-layer" id="smokeLayer"></div>
+    </div>
+
+    <div class="controls" id="controls">
+      <button class="btn btn-primary" id="startBtn">开启麦克风，开始吹蜡烛</button>
+      <button class="btn btn-secondary hidden" id="manualBtn">点击模拟吹灭</button>
+    </div>
+
+    <div class="volume-meter" id="volumeMeter">
+      <div class="volume-fill" id="volumeFill"></div>
+    </div>
+    <p class="hint" id="hint"></p>
+
+    <div class="end-message" id="endMessage">
+      <h2>生日快乐</h2>
+      <p>愿望已送达</p>
+      <button class="btn btn-primary" id="relightBtn">再点一次</button>
+    </div>
+  </div>
+
+  <script>
+    const title = document.getElementById('title');
+    const subtitle = document.getElementById('subtitle');
+    const startBtn = document.getElementById('startBtn');
+    const manualBtn = document.getElementById('manualBtn');
+    const relightBtn = document.getElementById('relightBtn');
+    const flameGroup = document.getElementById('flameGroup');
+    const volumeMeter = document.getElementById('volumeMeter');
+    const volumeFill = document.getElementById('volumeFill');
+    const hint = document.getElementById('hint');
+    const smokeLayer = document.getElementById('smokeLayer');
+    const endMessage = document.getElementById('endMessage');
+    const controls = document.getElementById('controls');
+
+    let audioContext = null;
+    let analyser = null;
+    let microphone = null;
+    let dataArray = null;
+    let rafId = null;
+    let isExtinguished = false;
+    let blowAccumulator = 0;
+    let currentSkew = 0;
+
+    const BLOW_THRESHOLD = 0.18;
+    const BLOW_REQUIRED = 28;
+    const SMOOTHING = 0.12;
+    const VOLUME_CAP = 0.55;
+
+    function initAudio() {
+      if (audioContext) return Promise.resolve();
+
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextClass) {
+        return Promise.reject(new Error('浏览器不支持 Web Audio API'));
+      }
+
+      audioContext = new AudioContextClass();
+      analyser = audioContext.createAnalyser();
+      analyser.fftSize = 512;
+      analyser.smoothingTimeConstant = 0.4;
+      dataArray = new Uint8Array(analyser.fftSize);
+
+      return navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+          microphone = audioContext.createMediaStreamSource(stream);
+          microphone.connect(analyser);
+          return audioContext.resume();
+        });
+    }
+
+    function getVolume() {
+      if (!analyser) return 0;
+      analyser.getByteTimeDomainData(dataArray);
+      let sum = 0;
+      for (let i = 0; i < dataArray.length; i++) {
+        const diff = dataArray[i] - 128;
+        sum += diff * diff;
+      }
+      const rms = Math.sqrt(sum / dataArray.length);
+      return Math.min(rms / 40, VOLUME_CAP);
+    }
+
+    function updateFlame(volume) {
+      if (isExtinguished) return;
+
+      const isBlowing = volume > BLOW_THRESHOLD;
+      const targetSkew = isBlowing ? -Math.min((volume - BLOW_THRESHOLD) * 140, 55) : 0;
+      currentSkew += (targetSkew - currentSkew) * SMOOTHING;
+
+      const scaleY = isBlowing ? 1 - Math.min((volume - BLOW_THRESHOLD) * 0.6, 0.35) : 1;
+      const scaleX = isBlowing ? 1 + Math.min((volume - BLOW_THRESHOLD) * 0.4, 0.25) : 1;
+      const brightness = isBlowing ? 1.2 : 1;
+
+      flameGroup.style.transform = `translateX(-50%) skewX(${currentSkew}deg) scale(${scaleX}, ${scaleY})`;
+      flameGroup.style.filter = `brightness(${brightness})`;
+
+      if (isBlowing) {
+        blowAccumulator += volume * 1.2;
+      } else {
+        blowAccumulator = Math.max(0, blowAccumulator - 0.6);
+      }
+
+      if (blowAccumulator >= BLOW_REQUIRED) {
+        extinguish();
+      }
+    }
+
+    function createSmoke() {
+      smokeLayer.innerHTML = '';
+      for (let i = 0; i < 5; i++) {
+        const s = document.createElement('div');
+        s.className = 'smoke';
+        s.style.left = `${46 + Math.random() * 8}%`;
+        s.style.animation = `rise ${1.6 + Math.random() * 0.8}s ease-out forwards`;
+        s.style.animationDelay = `${i * 0.25}s`;
+        s.style.setProperty('--drift', `${(Math.random() - 0.5) * 40}px`);
+        s.style.width = `${10 + Math.random() * 10}px`;
+        s.style.height = s.style.width;
+        smokeLayer.appendChild(s);
+      }
+    }
+
+    function createSparkles() {
+      const rect = endMessage.getBoundingClientRect();
+      for (let i = 0; i < 18; i++) {
+        const sp = document.createElement('div');
+        sp.className = 'sparkle';
+        sp.style.left = `${rect.left + rect.width / 2}px`;
+        sp.style.top = `${rect.top + rect.height / 2}px`;
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 60 + Math.random() * 120;
+        sp.style.setProperty('--tx', `${Math.cos(angle) * dist}px`);
+        sp.style.setProperty('--ty', `${Math.sin(angle) * dist}px`);
+        document.body.appendChild(sp);
+        setTimeout(() => sp.remove(), 1300);
+      }
+    }
+
+    function extinguish() {
+      if (isExtinguished) return;
+      isExtinguished = true;
+      flameGroup.classList.add('extinguished');
+      createSmoke();
+      smokeLayer.classList.add('visible');
+      volumeMeter.classList.remove('visible');
+      controls.classList.add('hidden');
+      hint.textContent = '';
+      setTimeout(() => {
+        endMessage.classList.add('visible');
+        createSparkles();
+      }, 600);
+    }
+
+    function relight() {
+      isExtinguished = false;
+      blowAccumulator = 0;
+      currentSkew = 0;
+      flameGroup.classList.remove('extinguished');
+      flameGroup.style.transform = '';
+      flameGroup.style.filter = '';
+      smokeLayer.classList.remove('visible');
+      smokeLayer.innerHTML = '';
+      endMessage.classList.remove('visible');
+      controls.classList.remove('hidden');
+      startBtn.classList.add('hidden');
+      manualBtn.classList.remove('hidden');
+      volumeMeter.classList.add('visible');
+      hint.textContent = '对着麦克风吹气，把蜡烛吹灭吧';
+    }
+
+    function loop() {
+      if (isExtinguished) return;
+      const volume = getVolume();
+      volumeFill.style.width = `${Math.min((volume / VOLUME_CAP) * 100, 100)}%`;
+      updateFlame(volume);
+      rafId = requestAnimationFrame(loop);
+    }
+
+    function start() {
+      initAudio()
+        .then(() => {
+          startBtn.classList.add('hidden');
+          manualBtn.classList.remove('hidden');
+          volumeMeter.classList.add('visible');
+          hint.textContent = '对着麦克风吹气，把蜡烛吹灭吧';
+          loop();
+        })
+        .catch(err => {
+          console.error(err);
+          hint.textContent = '无法访问麦克风，你可以点击“点击模拟吹灭”手动体验';
+          manualBtn.classList.remove('hidden');
+        });
+    }
+
+    startBtn.addEventListener('click', start);
+    manualBtn.addEventListener('click', extinguish);
+    relightBtn.addEventListener('click', () => {
+      relight();
+      loop();
+    });
+
+    window.addEventListener('load', () => {
+      title.classList.add('visible');
+      subtitle.classList.add('visible');
+    });
+  </script>
+</body>
+</html>
